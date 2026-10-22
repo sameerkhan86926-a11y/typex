@@ -1,8 +1,9 @@
 "use strict";
 
 /* =====================================================================
-   TYPEX — MULTI-ENGINE ARCADE HUB (DISCRETE ARCHITECTURE)
-   Six completely distinct game engines in a unified arcade frame.
+   TYPEX — MULTI-ENGINE ARCADE ENGINE
+   File: script.js
+   Full Procedural Sound Synth + 6 Dedicated Canvas Sub-Engines
    ===================================================================== */
 
 (() => {
@@ -26,7 +27,7 @@
   let animationId = 0;
 
   /* =====================================================================
-     AUDIO SYNTHESIZER (PROCEDURAL FX)
+     PROCEDURAL AUDIO SYNTHESIZER
      ===================================================================== */
   let audioCtx = null;
 
@@ -48,8 +49,8 @@
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = "sine";
-      osc.frequency.setValueAtTime(500 + Math.random() * 300, now);
-      gain.gain.setValueAtTime(0.04, now);
+      osc.frequency.setValueAtTime(520 + Math.random() * 260, now);
+      gain.gain.setValueAtTime(0.035, now);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.03);
       osc.connect(gain);
       gain.connect(audioCtx.destination);
@@ -59,8 +60,9 @@
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = "triangle";
-      osc.frequency.setValueAtTime(450 + Math.min(hub.combo * 25, 600), now);
-      osc.frequency.exponentialRampToValueAtTime(900, now + 0.08);
+      const pitch = 450 + Math.min(hub.combo * 25, 600);
+      osc.frequency.setValueAtTime(pitch, now);
+      osc.frequency.exponentialRampToValueAtTime(pitch * 1.5, now + 0.08);
       gain.gain.setValueAtTime(0.08, now);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
       osc.connect(gain);
@@ -71,32 +73,32 @@
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = "sawtooth";
-      osc.frequency.setValueAtTime(700, now);
-      osc.frequency.exponentialRampToValueAtTime(80, now + 0.18);
-      gain.gain.setValueAtTime(0.12, now);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+      osc.frequency.setValueAtTime(750, now);
+      osc.frequency.exponentialRampToValueAtTime(70, now + 0.2);
+      gain.gain.setValueAtTime(0.14, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
       osc.connect(gain);
       gain.connect(audioCtx.destination);
       osc.start(now);
-      osc.stop(now + 0.19);
+      osc.stop(now + 0.21);
     } else if (type === "boom") {
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = "sawtooth";
-      osc.frequency.setValueAtTime(140, now);
-      osc.frequency.exponentialRampToValueAtTime(30, now + 0.35);
+      osc.frequency.setValueAtTime(130, now);
+      osc.frequency.exponentialRampToValueAtTime(25, now + 0.38);
       gain.gain.setValueAtTime(0.25, now);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
       osc.connect(gain);
       gain.connect(audioCtx.destination);
       osc.start(now);
-      osc.stop(now + 0.36);
+      osc.stop(now + 0.4);
     } else if (type === "miss") {
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = "sawtooth";
-      osc.frequency.setValueAtTime(160, now);
-      osc.frequency.linearRampToValueAtTime(70, now + 0.15);
+      osc.frequency.setValueAtTime(150, now);
+      osc.frequency.linearRampToValueAtTime(60, now + 0.15);
       gain.gain.setValueAtTime(0.12, now);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
       osc.connect(gain);
@@ -107,7 +109,7 @@
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = "square";
-      osc.frequency.setValueAtTime(950, now);
+      osc.frequency.setValueAtTime(900, now);
       gain.gain.setValueAtTime(0.03, now);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.02);
       osc.connect(gain);
@@ -233,31 +235,56 @@
   }
 
   /* =====================================================================
-     GAME ENGINE 1: BUBBLE POP (PHYSICS ORBS)
+     1. BUBBLE POP ENGINE (PHYSICS + SPEED CONTROLLER)
      ===================================================================== */
   const BubbleEngine = {
     bubbles: [],
     particles: [],
     lastSpawn: 0,
+    speedMultiplier: 1.0,
 
     init() {
       this.bubbles = [];
       this.particles = [];
       this.lastSpawn = performance.now();
+
+      const speedControlEl = $("#bubble-speed-controls");
+      if (speedControlEl) speedControlEl.style.display = "inline-flex";
+
+      this.bindSpeedButtons();
+
       for (let i = 0; i < 5; i++) this.spawn(true);
       $("#typing-label-text").textContent = "TYPE THE LETTER INSIDE BUBBLE";
       typingInput.placeholder = "Press letter on keyboard...";
       $("#typing-instruction").textContent = "Quick-fire typing: Single keypress instantly pops.";
     },
 
+    bindSpeedButtons() {
+      const btns = document.querySelectorAll(".speed-btn");
+      btns.forEach((btn) => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          btns.forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          this.speedMultiplier = parseFloat(btn.dataset.speed) || 1.0;
+
+          this.bubbles.forEach((b) => {
+            b.vy = -(32 + Math.random() * 35 + hub.level * 4) * this.speedMultiplier;
+          });
+        };
+      });
+    },
+
     spawn(initial = false) {
       const r = 22;
+      const baseSpeed = 32 + Math.random() * 35 + hub.level * 4;
+
       this.bubbles.push({
         letter: String.fromCharCode(65 + Math.floor(Math.random() * 26)),
         x: Math.random() * (canvasWidth - 60) + 30,
         y: initial ? Math.random() * (canvasHeight * 0.6) + 40 : canvasHeight + 20,
         r,
-        vy: -(30 + Math.random() * 35 + hub.level * 4),
+        vy: -baseSpeed * this.speedMultiplier,
         wobble: Math.random() * 10,
         color: ["#a879ff", "#4ce7ff", "#4ff5b7"][Math.floor(Math.random() * 3)]
       });
@@ -283,7 +310,7 @@
           });
         }
         this.bubbles.splice(idx, 1);
-        registerHit(80);
+        registerHit(Math.round(80 * this.speedMultiplier));
       } else {
         registerMiss("No matching bubble!");
       }
@@ -291,7 +318,9 @@
     },
 
     update(delta, now) {
-      if (now - this.lastSpawn > Math.max(500, 1200 - hub.level * 60)) {
+      const spawnDelay = Math.max(300, (1200 - hub.level * 60) / this.speedMultiplier);
+
+      if (now - this.lastSpawn > spawnDelay) {
         this.spawn();
         this.lastSpawn = now;
       }
@@ -299,7 +328,7 @@
       for (let i = this.bubbles.length - 1; i >= 0; i--) {
         const b = this.bubbles[i];
         b.y += b.vy * delta;
-        b.x += Math.sin(now / 500 + b.wobble) * 20 * delta;
+        b.x += Math.sin(now / 500 + b.wobble) * 22 * delta;
 
         if (b.y + b.r < 0) {
           this.bubbles.splice(i, 1);
@@ -347,7 +376,7 @@
   };
 
   /* =====================================================================
-     GAME ENGINE 2: WORD RAIN (MATRIX CYBER CASCADE)
+     2. WORD RAIN ENGINE (MATRIX CASCADE)
      ===================================================================== */
   const WordRainEngine = {
     words: [],
@@ -428,7 +457,7 @@
   };
 
   /* =====================================================================
-     GAME ENGINE 3: LAST STAND (LANE BASE DEFENSE)
+     3. LAST STAND ENGINE (3-LANE DEFENSE)
      ===================================================================== */
   const SurvivalEngine = {
     enemies: [],
@@ -544,7 +573,7 @@
   };
 
   /* =====================================================================
-     GAME ENGINE 4: BOSS FIGHT (2D FIGHTER BRAWLER ENGINE)
+     4. BOSS FIGHT ENGINE (2D FIGHTER BRAWLER)
      ===================================================================== */
   const BossEngine = {
     bossHp: 100,
@@ -615,7 +644,6 @@
       const active = typingInput.value.trim().toUpperCase();
       const cy = canvasHeight * 0.5;
 
-      // Platform
       ctx.strokeStyle = "rgba(76, 231, 255, 0.25)";
       ctx.lineWidth = 3;
       ctx.beginPath();
@@ -623,7 +651,6 @@
       ctx.lineTo(canvasWidth * 0.9, cy + 60);
       ctx.stroke();
 
-      // Hero Fighter (Left)
       ctx.save();
       ctx.fillStyle = "#4ce7ff";
       ctx.shadowBlur = 18;
@@ -633,7 +660,6 @@
       ctx.fillRect(this.heroX - 4, cy - 15, 20, 8);
       ctx.restore();
 
-      // Boss Mech (Right)
       ctx.save();
       const bPulse = Math.sin(now / 150) * 4;
       ctx.fillStyle = "#ff5277";
@@ -644,7 +670,6 @@
       ctx.fillRect(this.bossX - 20, cy - 20, 40, 15);
       ctx.restore();
 
-      // Slash FX
       if (this.laserSlash) {
         ctx.strokeStyle = "#ffffff";
         ctx.lineWidth = 6;
@@ -654,7 +679,6 @@
         ctx.stroke();
       }
 
-      // Boss HP Bar
       const bw = 240;
       const bx = canvasWidth / 2 - bw / 2;
       const by = 55;
@@ -667,7 +691,6 @@
       ctx.textAlign = "center";
       ctx.fillText(`MECHA BOSS STABILITY ${this.bossHp}%`, canvasWidth / 2, by - 10);
 
-      // Target Combo Word
       ctx.font = "900 24px Orbitron";
       ctx.fillStyle = active && this.attackWord.startsWith(active) ? "#4ff5b7" : "#ffffff";
       ctx.fillText(this.attackWord, canvasWidth / 2, cy - 40);
@@ -675,7 +698,7 @@
   };
 
   /* =====================================================================
-     GAME ENGINE 5: BOMB DEFUSE (TACTICAL KEYPAD SIMULATOR)
+     5. BOMB DEFUSE ENGINE (TACTICAL KEYPAD)
      ===================================================================== */
   const BombEngine = {
     code: "",
@@ -759,7 +782,7 @@
   };
 
   /* =====================================================================
-     GAME ENGINE 6: MEMORY MASTER (NEURAL RETENTION SIM)
+     6. MEMORY MASTER ENGINE (NEURAL RETENTION)
      ===================================================================== */
   const MemoryEngine = {
     sequence: "",
@@ -842,7 +865,7 @@
   };
 
   /* =====================================================================
-     HUB ROUTING & DISPATCHER
+     HUB ROUTING
      ===================================================================== */
   const ENGINES = {
     bubble: BubbleEngine,
@@ -861,6 +884,11 @@
     modeCards.forEach((c) => c.classList.toggle("selected", c.dataset.mode === mode));
     $("#active-mode-title").textContent = modeCards.find((c) => c.dataset.mode === mode).querySelector(".mode-title").textContent;
     $("#mission-mode").textContent = mode.toUpperCase();
+
+    const speedControlEl = $("#bubble-speed-controls");
+    if (speedControlEl) {
+      speedControlEl.style.display = (mode === "bubble") ? "inline-flex" : "none";
+    }
 
     startOverlay.classList.remove("hidden");
     resultOverlay.classList.add("hidden");
@@ -941,7 +969,7 @@
   }
 
   /* =====================================================================
-     INPUT EVENT LISTENERS
+     INPUT LISTENERS
      ===================================================================== */
   typingInput.addEventListener("input", () => {
     if (!hub.running || hub.paused || hub.ended) return;
