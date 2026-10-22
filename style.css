@@ -1,5 +1,5 @@
 /* =========================================
-   TYPEX — TYPING ARCADE (NEXT-LEVEL ENGINE)
+   TYPEX — MULTI-ENGINE ARCADE
    File: style.css
    ========================================= */
 
@@ -77,7 +77,7 @@ input:disabled {
   background: var(--cyan);
 }
 
-/* Background Effects */
+/* Ambience */
 
 .ambient {
   position: fixed;
@@ -217,7 +217,7 @@ input:disabled {
   color: var(--purple-bright);
 }
 
-/* Shell */
+/* Layout */
 
 .app-shell {
   position: relative;
@@ -273,7 +273,7 @@ input:disabled {
 }
 
 .intro-copy {
-  max-width: 520px;
+  max-width: 540px;
   margin: 0 auto;
   color: var(--muted);
   font-size: 13px;
@@ -317,7 +317,7 @@ input:disabled {
   text-shadow: 0 0 8px var(--cyan-glow);
 }
 
-/* Cards Grid */
+/* Grid Cards */
 
 .mode-grid {
   display: grid;
@@ -529,7 +529,7 @@ input:disabled {
   transform: translate(3px, -3px);
 }
 
-/* Arena Layout */
+/* Arena & Main Game Area */
 
 .game-layout {
   display: grid;
@@ -556,8 +556,6 @@ input:disabled {
   letter-spacing: 1.2px;
 }
 
-/* Arena Canvas Box */
-
 .arena {
   position: relative;
   isolation: isolate;
@@ -570,19 +568,18 @@ input:disabled {
   box-shadow:
     inset 0 0 80px rgba(0, 0, 0, 0.6),
     0 15px 40px rgba(0, 0, 0, 0.35);
-  transition: transform 100ms ease, box-shadow 100ms ease;
+  transition: transform 100ms ease;
 }
 
-/* Shake reaction */
 .arena.shake {
   animation: arenaShake 0.25s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
 @keyframes arenaShake {
-  10%, 90% { transform: translate3d(-2px, 1px, 0); }
-  20%, 80% { transform: translate3d(3px, -2px, 0); }
-  30%, 50%, 70% { transform: translate3d(-4px, 2px, 0); }
-  40%, 60% { transform: translate3d(4px, -1px, 0); }
+  10%, 90% { transform: translate3d(-3px, 1px, 0); }
+  20%, 80% { transform: translate3d(4px, -2px, 0); }
+  30%, 50%, 70% { transform: translate3d(-5px, 3px, 0); }
+  40%, 60% { transform: translate3d(5px, -1px, 0); }
 }
 
 #game-canvas {
@@ -613,6 +610,52 @@ input:disabled {
 .arena-top-label { top: 16px; }
 .arena-bottom-label { bottom: 16px; }
 
+/* Bubble Speed Control Pills */
+
+.speed-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(14, 20, 38, 0.9);
+  padding: 3px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(168, 121, 255, 0.35);
+  pointer-events: auto;
+}
+
+.speed-label {
+  color: var(--muted);
+  font-family: var(--font-display);
+  font-size: 7.5px;
+  letter-spacing: 1px;
+  margin-right: 2px;
+}
+
+.speed-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #8c9bb7;
+  font-family: var(--font-display);
+  font-size: 8px;
+  font-weight: 700;
+  padding: 3px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.speed-btn:hover {
+  color: var(--cyan);
+  border-color: rgba(76, 231, 255, 0.4);
+}
+
+.speed-btn.active {
+  background: rgba(168, 121, 255, 0.25);
+  color: var(--purple-bright);
+  border-color: var(--purple);
+  box-shadow: 0 0 10px rgba(168, 121, 255, 0.4);
+}
+
 /* Overlays */
 
 .arena-overlay {
@@ -624,7 +667,7 @@ input:disabled {
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
-  background: rgba(7, 10, 19, 0.78);
+  background: rgba(7, 10, 19, 0.82);
   text-align: center;
   backdrop-filter: blur(8px);
 }
@@ -676,7 +719,7 @@ input:disabled {
   line-height: 1.7;
 }
 
-/* Primary Button */
+/* Buttons */
 
 .primary-button {
   display: inline-flex;
@@ -702,10 +745,6 @@ input:disabled {
   transform: translateY(-2px);
   filter: brightness(1.1);
   box-shadow: 0 12px 35px rgba(137, 86, 234, 0.5);
-}
-
-.primary-button:active {
-  transform: translateY(0);
 }
 
 .button-arrow {
@@ -881,7 +920,7 @@ kbd {
   letter-spacing: 0.5px;
 }
 
-/* Sidebar Telemetry */
+/* Telemetry Sidebar */
 
 .stats-sidebar {
   display: flex;
@@ -1122,7 +1161,11 @@ kbd {
   gap: 8px;
 }
 
-/* Responsive */
+@keyframes blink {
+  to { visibility: hidden; }
+}
+
+/* Responsiveness */
 
 @media (max-width: 1200px) {
   .app-shell { width: 94%; }
