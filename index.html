@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080812">
+<meta name="description" content="TYPEX — The Ultimate Typing Experience. Test your speed, challenge your limits and become a keyboard legend.">
+<title>TYPEX — Ultimate Typing Experience</title>
+
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #080812;
+  --panel: #111120;
+  --panel2: #17172a;
+  --text: #f5f5ff;
+  --muted: #9696b5;
+  --accent: #a855f7;
+  --accent2: #39d9ff;
+  --border: #292940;
+  --success: #43f5ad;
+  --danger: #ff5277;
+  --shadow: rgba(168,85,247,.2);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 10% 0%, var(--shadow), transparent 35%),
+    radial-gradient(ellipse at 95% 35%, rgba(57,217,255,.07), transparent 35%),
+    var(--bg);
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+  transition: background .3s, color .3s;
+}
+
+body[data-theme="rgb"] {
+  --accent: #ff3dbb;
+  --accent2: #43ffb2;
+  --shadow: rgba(255,61,187,.2);
+}
+
+body[data-theme="hacker"] {
+  --bg: #020a05;
+  --panel: #07150c;
+  --panel2: #0d2013;
+  --text: #b7ffca;
+  --muted: #70b887;
+  --accent: #39ff75;
+  --accent2: #d2ff65;
+  --border: #1d4d2b;
+  --shadow: rgba(57,255,117,.14);
+}
+
+body[data-theme="pro"] {
+  --bg: #101114;
+  --panel: #191b20;
+  --panel2: #22252c;
+  --text: #f2f3f6;
+  --muted: #a0a4af;
+  --accent: #e2e6ee;
+  --accent2: #8f9bb0;
+  --border: #353943;
+  --shadow: rgba(255,255,255,.07);
+}
+
+body[data-theme="ice"] {
+  --bg: #061421;
+  --panel: #0c2032;
+  --panel2: #123049;
+  --text: #e4f8ff;
+  --muted: #91b9ce;
+  --accent: #61d9ff;
+  --accent2: #b6a5ff;
+  --border: #21435c;
+  --shadow: rgba(97,217,255,.17);
+}
+
+button, select, input, textarea { font: inherit; }
+
+button {
+  cursor: pointer;
+  color: var(--text);
+}
+
+button:focus-visible, select:focus-visible,
+input:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--accent2);
+  outline-offset: 3px;
+}
+
+button:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 15px clamp(16px, 4vw, 55px);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--border);
+}
+
+.logo {
+  font-size: 27px;
+  font-weight: 950;
+  letter-spacing: -1.5px;
+}
+
+.logo span { color: var(--accent); }
+
+.logo small {
+  display: block;
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: 3px;
+}
+
+.top-actions { display: flex; gap: 8px; align-items: center; }
+
+.btn {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  padding: 10px 14px;
+  border-radius: 11px;
+  transition: .2s;
+}
+
+.btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+
+.primary {
+  background: linear-gradient(120deg, var(--accent), color-mix(in srgb, var(--accent) 65%, var(--accent2)));
+  color: #080812;
+  font-weight: 850;
+  border: none;
+  box-shadow: 0 5px 22px var(--shadow);
+}
+
+.theme-select {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 10px;
+  border-radius: 10px;
+  max-width: 155px;
+}
+
+main {
+  width: min(1160px, 92%);
+  margin: 0 auto;
+  padding: 35px 0 65px;
+}
+
+.hero { text-align: center; padding: 30px 0 28px; }
+
+.eyebrow {
+  color: var(--accent2);
+  letter-spacing: 3px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+h1 {
+  margin: 14px 0;
+  font-size: clamp(39px, 7vw, 75px);
+  line-height: 1;
+  letter-spacing: -4px;
+}
+
+h1 .gradient {
+  background: linear-gradient(100deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.subtitle {
+  color: var(--muted);
+  line-height: 1.8;
+  max-width: 540px;
+  margin: 18px auto;
+  font-size: 14px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 28px 0;
+}
+
+.stat, .card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 17px;
+}
+
+.stat { padding: 19px; text-align: center; }
+
+.stat-value { font-size: 29px; font-weight: 900; }
+
+.stat-label {
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  margin-top: 5px;
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 30px 0 15px;
+}
+
+h2 { font-size: 19px; margin: 0; }
+
+.muted { color: var(--muted); font-size: 12px; }
+
+.modes {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 11px;
+}
+
+.mode {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 16px;
+  border-radius: 13px;
+  text-align: left;
+  transition: .2s;
+}
+
+.mode:hover, .mode.active {
+  border-color: var(--accent);
+  background: var(--panel2);
+  box-shadow: 0 0 20px var(--shadow);
+}
+
+.mode strong { display: block; margin-bottom: 7px; font-size: 13px; }
+.mode small { color: var(--muted); font-size: 11px; line-height: 1.6; }
+
+.game { margin-top: 22px; padding: clamp(16px, 3vw, 28px); }
+
+.game-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pills { display: flex; gap: 7px; flex-wrap: wrap; }
+
+.pill {
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  color: var(--muted);
+  background: var(--panel2);
+  font-size: 11px;
+}
+
+.pill.active { border-color: var(--accent); color: var(--accent2); }
+
+.timer {
+  font-size: 35px;
+  font-weight: 900;
+  margin: 20px 0 12px;
+}
+
+.timer.danger { color: var(--danger); animation: pulse .5s infinite alternate; }
+
+@keyframes pulse { to { opacity: .5; } }
+
+.progress {
+  height: 4px;
+  background: var(--panel2);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.progress div {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transition: width .2s;
+}
+
+.text-display {
+  min-height: 135px;
+  padding: 19px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: clamp(17px, 2.6vw, 23px);
+  line-height: 1.95;
+  letter-spacing: .2px;
+  overflow-wrap: anywhere;
+}
+
+.char { color: var(--muted); }
+
+.char.correct { color: var(--success); }
+
+.char.incorrect {
+  color: var(--danger);
+  background: rgba(255,82,119,.12);
+  border-radius: 3px;
+}
+
+.char.current {
+  border-left: 2px solid var(--accent2);
+  animation: caret .7s infinite;
+}
+
+@keyframes caret { 50% { border-color: transparent; } }
+
+.input-area {
+  width: 100%;
+  resize: vertical;
+  min-height: 85px;
+  margin-top: 12px;
+  padding: 15px;
+  color: var(--text);
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  outline: none;
+}
+
+.input-area:focus { border-color: var(--accent); }
+
+.input-area:disabled { opacity: .7; }
+
+.game-actions {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin-top: 13px;
+}
+
+.result {
+  display: none;
+  margin-top: 18px;
+  padding: 22px;
+  border: 1px solid var(--accent);
+  border-radius: 14px;
+  background: var(--panel2);
+}
+
+.result.show { display: block; }
+
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.result-item {
+  padding: 13px;
+  background: var(--panel);
+  border-radius: 10px;
+}
+
+.result-item strong { display: block; font-size: 25px; }
+.result-item small { color: var(--muted); }
+
+.lower-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.lower-grid .card { padding: 21px; }
+
+.history { padding-left: 18px; color: var(--muted); font-size: 12px; line-height: 2; }
+
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.settings-row:last-child { border-bottom: 0; }
+
+footer {
+  text-align: center;
+  padding: 25px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+body.chaos-mode .game { animation: wobble 1.2s infinite alternate; }
+
+@keyframes wobble {
+  from { transform: translateX(-2px); }
+  to { transform: translateX(2px); }
+}
+
+body.rage-mode .game.shake { animation: shake .2s linear; }
+
+@keyframes shake {
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+body.rgb-mode .primary { animation: rgbGlow 3s infinite alternate; }
+
+@keyframes rgbGlow {
+  to { box-shadow: 0 0 25px var(--accent), 0 0 45px var(--accent2); }
+}
+
+@media (max-width: 760px) {
+  .modes { grid-template-columns: repeat(2, 1fr); }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .topbar { padding: 12px 4%; }
+  .logo { font-size: 23px; }
+  .theme-select { max-width: 125px; }
+  .lower-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 420px) {
+  .top-actions { gap: 5px; }
+  .top-actions .btn { padding: 9px; }
+  .theme-select { max-width: 110px; font-size: 11px; }
+  h1 { letter-spacing: -2px; }
+  .result-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+
+<body data-theme="cyber">
+<header class="topbar">
+  <div class="logo">TYPE<span>X</span><small>THE ULTIMATE TYPING EXPERIENCE</small></div>
+  <div class="top-actions">
+    <select id="themeSelect" class="theme-select" aria-label="Choose website design">
+      <option value="cyber">Cyberpunk</option>
+      <option value="rgb">RGB Gaming</option>
+      <option value="hacker">Hacker Mode</option>
+      <option value="pro">Dark Pro</option>
+      <option value="ice">Ice Mode</option>
+    </select>
+    <button class="btn" id="soundBtn" aria-pressed="false" title="Toggle typing sounds">Sound: OFF</button>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="eyebrow">YOUR KEYBOARD. YOUR RULES.</div>
+    <h1>TYPE BEYOND<br><span class="gradient">LIMITS.</span></h1>
+    <p class="subtitle">Train your reflexes. Break your records. Survive the chaos. Welcome to a different kind of typing experience.</p>
+    <button class="btn primary" id="heroStart">START TYPING →</button>
+  </section>
+
+  <section class="stats" aria-label="Your statistics">
+    <div class="stat"><div class="stat-value" id="bestWpm">0</div><div class="stat-label">BEST WPM</div></div>
+    <div class="stat"><div class="stat-value" id="totalTests">0</div><div class="stat-label">TESTS PLAYED</div></div>
+    <div class="stat"><div class="stat-value" id="totalXp">0</div><div class="stat-label">TOTAL XP</div></div>
+    <div class="stat"><div class="stat-value" id="playerLevel">1</div><div class="stat-label">PLAYER LEVEL</div></div>
+  </section>
+
+  <div class="section-head">
+    <h2>SELECT YOUR CHALLENGE</h2>
+    <span class="muted">CHOOSE YOUR WEAPON</span>
+  </div>
+
+  <section class="modes" id="modes">
+    <button class="mode active" data-mode="speed"><strong>SPEED RUSH</strong><small>Race against the clock.</small></button>
+    <button class="mode" data-mode="death"><strong>DEATH MODE</strong><small>One mistake ends the run.</small></button>
+    <button class="mode" data-mode="endless"><strong>ENDLESS</strong><small>Keep going, beat your best.</small></button>
+    <button class="mode" data-mode="bomb"><strong>BOMB TYPING</strong><small>Defuse the ticking timer.</small></button>
+    <button class="mode" data-mode="memory"><strong>MEMORY</strong><small>Memorize the text, then type.</small></button>
+    <button class="mode" data-mode="invisible"><strong>INVISIBLE</strong><small>Type with hidden text.</small></button>
+    <button class="mode" data-mode="freeze"><strong>FREEZE</strong><small>Survive random freezes.</small></button>
+    <button class="mode" data-mode="chaos"><strong>CHAOS LAB</strong><small>Visual chaos. Focus required.</small></button>
+  </section>
+
+  <section class="card game" id="game">
+    <div class="game-top">
+      <div>
+        <h2 id="gameTitle">SPEED RUSH</h2>
+        <div class="muted" id="gameDescription">Type the passage as accurately as possible.</div>
+      </div>
+      <div class="pills" id="durationPills">
+        <button class="pill" data-duration="15">15 SEC</button>
+        <button class="pill active" data-duration="30">30 SEC</button>
+        <button class="pill" data-duration="60">60 SEC</button>
+        <button class="pill" data-duration="120">120 SEC</button>
+      </div>
+    </div>
+
+    <div class="timer" id="timer">00:30</div>
+    <div class="progress"><div id="progressBar"></div></div>
+    <div class="text-display" id="textDisplay" aria-label="Text to type"></div>
+
+    <textarea id="typingInput" class="input-area" placeholder="Press START ROUND, then type here..." aria-label="Type the displayed text" disabled autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false"></textarea>
+
+    <div class="game-actions">
+      <button class="btn primary" id="startBtn">START ROUND</button>
+      <button class="btn" id="restartBtn">RESET</button>
+      <button class="btn" id="customBtn">CUSTOM TEXT</button>
+    </div>
+
+    <div class="result" id="result" aria-live="polite">
+      <div class="eyebrow">ROUND COMPLETE</div>
+      <h2 id="resultTitle">NICE RUN!</h2>
+      <div class="result-grid">
+        <div class="result-item"><strong id="resultWpm">0</strong><small>WPM</small></div>
+        <div class="result-item"><strong id="resultAccuracy">0%</strong><small>ACCURACY</small></div>
+        <div class="result-item"><strong id="resultCpm">0</strong><small>CPM</small></div>
+        <div class="result-item"><strong id="resultErrors">0</strong><small>ERRORS</small></div>
+        <div class="result-item"><strong id="resultXp">0</strong><small>XP EARNED</small></div>
+        <div class="result-item"><strong id="resultTime">0s</strong><small>TIME PLAYED</small></div>
+      </div>
+      <button class="btn primary" id="againBtn">PLAY AGAIN →</button>
+      <button class="btn" id="shareBtn">SHARE RESULT</button>
+    </div>
+  </section>
+
+  <section class="lower-grid">
+    <div class="card">
+      <h2>YOUR PROGRESS</h2>
+      <p class="muted">Every round makes you stronger.</p>
+      <div class="settings-row"><span>Next level</span><strong id="nextLevel">100 XP</strong></div>
+      <div class="settings-row"><span>Achievement</span><strong id="achievement">First Strike</strong></div>
+      <div class="settings-row"><span>Best accuracy</span><strong id="bestAccuracy">0%</strong></div>
+      <div class="settings-row"><span>Current streak</span><strong id="streak">0</strong></div>
+    </div>
+
+    <div class="card">
+      <h2>RECENT ROUNDS</h2>
+      <p class="muted">Your latest local results.</p>
+      <ol class="history" id="history"><li>No rounds yet. Your journey starts now.</li></ol>
+      <button class="btn" id="clearHistory" style="margin-top:10px">CLEAR HISTORY</button>
+    </div>
+  </section>
+
+  <section class="card game" style="margin-top:20px">
+    <div class="section-head" style="margin-top:0">
+      <h2>QUICK SETTINGS</h2>
+      <span class="muted">MAKE IT YOURS</span>
+    </div>
+    <div class="settings-row">
+      <label for="difficulty">Difficulty</label>
+      <select id="difficulty" class="theme-select">
+        <option value="easy">Easy</option>
+        <option value="normal" selected>Normal</option>
+        <option value="hard">Hard</option>
+      </select>
+    </div>
+    <div class="settings-row">
+      <label for="shakeToggle">Rage screen shake</label>
+      <input type="checkbox" id="shakeToggle" checked>
+    </div>
+    <div class="settings-row">
+      <label for="reducedMotion">Reduce animations</label>
+      <input type="checkbox" id="reducedMotion">
+    </div>
+    <div class="settings-row">
+      <span>Saved locally on this device</span>
+      <strong>LOCAL PROFILE</strong>
+    </div>
+  </section>
+</main>
+
+<footer>TYPEX © 2026 · BUILT FOR THE KEYBOARD OBSESSED</footer>
+
+<script>
+"use strict";
+
+const $ = id => document.getElementById(id);
+
+const passages = [
+  "The future belongs to those who keep learning and never stop exploring new possibilities.",
+  "Speed is nothing without control precision and consistency separate the great from the good.",
+  "Every keystroke is another chance to improve your focus your rhythm and your reaction time.",
+  "Build something remarkable stay curious challenge yourself and turn every failure into progress.",
+  "Greatness is not a single moment it is a collection of small victories repeated every day.",
+  "The keyboard becomes an instrument when your hands learn to move with confidence and purpose.",
+  "Think faster type smarter and discover how far your determination can take you.",
+  "In a world full of distractions the ability to focus is your greatest competitive advantage."
+];
+
+const modeInfo = {
+  speed: ["SPEED RUSH", "Type the passage as accurately as possible."],
+  death: ["DEATH MODE", "One incorrect character ends your run."],
+  endless: ["ENDLESS MODE", "Keep typing until you decide to finish."],
+  bomb: ["BOMB TYPING", "Defuse the bomb before the timer reaches zero."],
+  memory: ["MEMORY MODE", "Memorize the passage before it disappears."],
+  invisible: ["INVISIBLE MODE", "The passage disappears when you start typing."],
+  freeze: ["FREEZE MODE", "Typing pauses briefly at unpredictable intervals."],
+  chaos: ["CHAOS LAB", "Keep your focus while the interface moves."]
+};
+
+const defaultProfile = {
+  bestWpm: 0,
+  totalTests: 0,
+  xp: 0,
+  bestAccuracy: 0,
+  streak: 0,
+  history: [],
+  theme: "cyber",
+  sound: false,
+  duration: 30,
+  difficulty: "normal",
+  shake: true,
+  reducedMotion: false,
+  customText: ""
+};
+
+let profile = loadProfile();
+let mode = "speed";
+let duration = profile.duration || 30;
+let passage = "";
+let running = false;
+let startedAt = 0;
+let timerId = null;
+let freezeId = null;
+let frozenUntil = 0;
+let memoryUntil = 0;
+let memoryShown = true;
+let soundContext = null;
+let lastResult = null;
+let gameToken = 0;
+
+function loadProfile() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("typex_profile"));
+    return saved && typeof saved === "object"
+      ? { ...defaultProfile, ...saved }
+      : { ...defaultProfile };
+  } catch {
+    return { ...defaultProfile };
+  }
+}
+
+function saveProfile() {
+  try {
+    localStorage.setItem("typex_profile", JSON.stringify(profile));
+  } catch {
+    // The game can still run when storage is unavailable.
+  }
+}
+
+function randomPassage() {
+  if (profile.customText.trim()) return profile.customText.trim();
+  const shuffled = [...passages].sort(() => Math.random() - 0.5);
+  let text = shuffled.join(" ");
+  if (profile.difficulty === "hard") {
+    text += " 84729 #TypeX! precision_99;";
+  } else if (profile.difficulty === "easy") {
+    text = passages[0] + " " + passages[3];
+  }
+  return text;
+}
+
+function formatTime(seconds) {
+  const s = Math.max(0, Math.ceil(seconds));
+  return `00:${String(s).padStart(2, "0")}`;
+}
+
+function elapsedSeconds() {
+  return startedAt ? (Date.now() - startedAt) / 1000 : 0;
+}
+
+function typedValue() {
+  return $("typingInput").value;
+}
+
+function countErrors(value) {
+  let errors = 0;
+  for (let i = 0; i < value.length; i++) {
+    if (i >= passage.length || value[i] !== passage[i]) errors++;
+  }
+  return errors;
+}
+
+function calculateStats() {
+  const value = typedValue();
+  const elapsed = Math.max(elapsedSeconds(), 0.1);
+  let correct = 0;
+  for (let i = 0; i < Math.min(value.length, passage.length); i++) {
+    if (value[i] === passage[i]) correct++;
+  }
+  const errors = countErrors(value);
+  const wpm = Math.round((correct / 5) / (elapsed / 60));
+  const cpm = Math.round(correct / (elapsed / 60));
+  const accuracy = value.length ? Math.round(correct / value.length * 100) : 0;
+  return { wpm, cpm, accuracy, errors, correct, elapsed };
+}
+
+function renderPassage() {
+  const value = typedValue();
+  const display = $("textDisplay");
+  display.replaceChildren();
+
+  const hidden = (mode === "invisible" && running && value.length > 0) ||
+    (mode === "memory" && running && !memoryShown);
+
+  if (hidden) {
+    display.textContent = "•••• •••• •••• ••••";
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+
+  for (let i = 0; i < passage.length; i++) {
+    const span = document.createElement("span");
+    span.className = "char";
+    span.textContent = passage[i];
+
+    if (i < value.length) {
+      span.classList.add(value[i] === passage[i] ? "correct" : "incorrect");
+    } else if (i === value.length && running) {
+      span.classList.add("current");
+    }
+
+    fragment.appendChild(span);
+  }
+
+  display.appendChild(fragment);
+}
+
+function updateLiveStats() {
+  const value = typedValue();
+  const elapsed = Math.max(elapsedSeconds(), 0.1);
+  let correct = 0;
+
+  for (let i = 0; i < Math.min(value.length, passage.length); i++) {
+    if (value[i] === passage[i]) correct++;
+  }
+
+  $("timer").textContent = formatTime(duration - elapsed);
+  $("timer").classList.toggle("danger", duration - elapsed <= 5);
+  $("progressBar").style.width = `${Math.max(0, (duration - elapsed) / duration * 100)}%`;
+
+  $("resultWpm").textContent = Math.round(correct / 5 / (elapsed / 60));
+  $("resultAccuracy").textContent = `${value.length ? Math.round(correct / value.length * 100) : 100}%`;
+  $("resultCpm").textContent = Math.round(correct / (elapsed / 60));
+}
+
+function beep() {
+  if (!profile.sound) return;
+  try {
+    soundContext ||= new (window.AudioContext || window.webkitAudioContext)();
+    if (soundContext.state === "suspended") soundContext.resume();
+    const oscillator = soundContext.createOscillator();
+    const gain = soundContext.createGain();
+    oscillator.frequency.value = 580;
+    gain.gain.value = 0.025;
+    oscillator.connect(gain);
+    gain.connect(soundContext.destination);
+    oscillator.start();
+    oscillator.stop(soundContext.currentTime + 0.035);
+  } catch {}
+}
+
+function selectMode(nextMode) {
+  if (!modeInfo[nextMode]) return;
+  mode = nextMode;
+
+  document.querySelectorAll(".mode").forEach(button => {
+    button.classList.toggle("active", button.dataset.mode === mode);
+  });
+
+  $("gameTitle").textContent = modeInfo[mode][0];
+  $("gameDescription").textContent = modeInfo[mode][1];
+  $("durationPills").style.display = mode === "endless" ? "none" : "flex";
+  resetGame();
+}
+
+function setTheme(theme) {
+  const allowed = ["cyber", "rgb", "hacker", "pro", "ice"];
+  if (!allowed.includes(theme)) theme = "cyber";
+
+  document.body.dataset.theme = theme;
+  document.body.classList.toggle("rgb-mode", theme === "rgb");
+  $("themeSelect").value = theme;
+  profile.theme = theme;
+  saveProfile();
+}
+
+function resetGame() {
+  gameToken++;
+  running = false;
+  startedAt = 0;
+  clearInterval(timerId);
+  clearTimeout(freezeId);
+  frozenUntil = 0;
+  memoryUntil = 0;
+  memoryShown = true;
+
+  $("typingInput").value = "";
+  $("typingInput").disabled = true;
+  $("result").classList.remove("show");
+  $("startBtn").disabled = false;
+  $("startBtn").textContent = "START ROUND";
+  $("timer").classList.remove("danger");
+  $("timer").textContent = formatTime(duration);
+  $("progressBar").style.width = "100%";
+  $("game").classList.remove("shake");
+
+  document.body.classList.remove("chaos-mode", "rage-mode");
+
+  passage = randomPassage();
+  renderPassage();
+}
+
+function startRound() {
+  if (running) return;
+
+  resetGame();
+  running = true;
+  startedAt = Date.now();
+  const token = gameToken;
+
+  $("typingInput").disabled = false;
+  $("startBtn").disabled = true;
+  $("startBtn").textContent = "ROUND IN PROGRESS...";
+  $("result").classList.remove("show");
+
+  if (mode === "memory") {
+    memoryShown = true;
+    memoryUntil = Date.now() + 3000;
+    $("gameDescription").textContent = "Memorize the text! It disappears in 3 seconds.";
+  }
+
+  if (mode === "chaos" && !profile.reducedMotion) {
+    document.body.classList.add("chaos-mode");
+  }
+
+  if (mode === "freeze") scheduleFreeze(token);
+
+  renderPassage();
+  $("typingInput").focus();
+
+  timerId = setInterval(() => {
+    if (!running || token !== gameToken) return;
+
+    const elapsed = elapsedSeconds();
+
+    if (mode === "memory" && memoryShown && Date.now() >= memoryUntil) {
+      memoryShown = false;
+      renderPassage();
+      $("gameDescription").textContent = "Now type the passage from memory!";
+    }
+
+    if (frozenUntil > Date.now()) {
+      $("gameDescription").textContent =
+        `FROZEN! Resume in ${Math.ceil((frozenUntil - Date.now()) / 1000)}s`;
+    } else if (mode === "freeze") {
+      $("gameDescription").textContent = modeInfo.freeze[1];
+    }
+
+    updateLiveStats();
+
+    if (mode !== "endless" && elapsed >= duration) {
+      finishRound("TIME UP");
+    }
+  }, 100);
+
+  updateLiveStats();
+}
+
+function scheduleFreeze(token) {
+  clearTimeout(freezeId);
+  if (!running || token !== gameToken) return;
+
+  freezeId = setTimeout(() => {
+    if (!running || token !== gameToken) return;
+
+    frozenUntil = Date.now() + 1500;
+    $("typingInput").disabled = true;
+    $("gameDescription").textContent = "FROZEN! Wait for the system to release you.";
+
+    setTimeout(() => {
+      if (!running || token !== gameToken) return;
+      frozenUntil = 0;
+      $("typingInput").disabled = false;
+      $("typingInput").focus();
+      $("gameDescription").textContent = modeInfo.freeze[1];
+      scheduleFreeze(token);
+    }, 1500);
+  }, 5000 + Math.random() * 6000);
+}
+
+function onTyping() {
+  if (!running) return;
+
+  const value = typedValue();
+  const errors = countErrors(value);
+
+  if (mode === "death" && errors > 0) {
+    finishRound("ELIMINATED — ONE MISTAKE");
+    return;
+  }
+
+  if (mode === "bomb" && value.length >= passage.length && errors === 0) {
+    finishRound("BOMB DEFUSED!");
+    return;
+  }
+
+  if (value.length >= passage.length) {
+    if (mode === "endless") {
+      passage += " " + randomPassage();
+    } else {
+      finishRound("PASSAGE COMPLETE!");
+      return;
+    }
+  }
+
+  renderPassage();
+  updateLiveStats();
+  beep();
+
+  if (errors > 0 && profile.shake && !profile.reducedMotion && mode === "speed") {
+    $("game").classList.remove("shake");
+    void $("game").offsetWidth;
+    $("game").classList.add("shake");
+    setTimeout(() => $("game").classList.remove("shake"), 220);
+  }
+}
+
+function finishRound(reason = "ROUND COMPLETE") {
+  if (!running) return;
+
+  running = false;
+  clearInterval(timerId);
+  clearTimeout(freezeId);
+
+  $("typingInput").disabled = true;
+  $("startBtn").disabled = false;
+  $("startBtn").textContent = "START ROUND";
+  document.body.classList.remove("chaos-mode", "rage-mode");
+
+  const stats = calculateStats();
+  const played = Math.max(1, Math.min(duration, Math.ceil(stats.elapsed)));
+  const xp = Math.max(1, Math.round(stats.wpm * stats.accuracy / 100));
+
+  profile.totalTests++;
+  profile.xp += xp;
+  profile.bestWpm = Math.max(profile.bestWpm, stats.wpm);
+  profile.bestAccuracy = Math.max(profile.bestAccuracy, stats.accuracy);
+  profile.streak = stats.errors === 0 ? profile.streak + 1 : 0;
+
+  const record = {
+    mode,
+    wpm: stats.wpm,
+    accuracy: stats.accuracy,
+    errors: stats.errors,
+    xp,
+    date: new Date().toLocaleDateString()
+  };
+
+  profile.history.unshift(record);
+  profile.history = profile.history.slice(0, 10);
+  lastResult = { ...record, reason, time: played };
+
+  saveProfile();
+  renderProfile();
+
+  $("resultTitle").textContent = reason;
+  $("resultWpm").textContent = stats.wpm;
+  $("resultAccuracy").textContent = `${stats.accuracy}%`;
+  $("resultCpm").textContent = stats.cpm;
+  $("resultErrors").textContent = stats.errors;
+  $("resultXp").textContent = `+${xp}`;
+  $("resultTime").textContent = `${played}s`;
+  $("result").classList.add("show");
+  $("result").scrollIntoView({ behavior: profile.reducedMotion ? "auto" : "smooth", block: "nearest" });
+}
+
+function renderProfile() {
+  $("bestWpm").textContent = profile.bestWpm;
+  $("totalTests").textContent = profile.totalTests;
+  $("totalXp").textContent = profile.xp;
+  $("playerLevel").textContent = Math.floor(profile.xp / 100) + 1;
+  $("nextLevel").textContent = `${100 - profile.xp % 100} XP`;
+  $("bestAccuracy").textContent = `${profile.bestAccuracy}%`;
+  $("streak").textContent = profile.streak;
+
+  const achievements = [];
+  if (profile.totalTests >= 1) achievements.push("First Strike");
+  if (profile.bestWpm >= 30) achievements.push("Speed Starter");
+  if (profile.bestWpm >= 50) achievements.push("Speed Demon");
+  if (profile.bestWpm >= 100) achievements.push("Keyboard Legend");
+  if (profile.bestAccuracy >= 100 && profile.totalTests > 0) achievements.push("Perfect Precision");
+
+  $("achievement").textContent = achievements.at(-1) || "First Strike";
+
+  const history = $("history");
+  history.replaceChildren();
+
+  if (!profile.history.length) {
+    const li = document.createElement("li");
+    li.textContent = "No rounds yet. Your journey starts now.";
+    history.appendChild(li);
+    return;
+  }
+
+  profile.history.slice(0, 5).forEach(item => {
+    const li = document.createElement("li");
+    li.textContent = `${item.mode.toUpperCase()} — ${item.wpm} WPM · ${item.accuracy}% · ${item.date}`;
+    history.appendChild(li);
+  });
+}
+
+function setDuration(seconds) {
+  duration = seconds;
+  profile.duration = seconds;
+  saveProfile();
+
+  document.querySelectorAll("[data-duration]").forEach(button => {
+    button.classList.toggle("active", Number(button.dataset.duration) === seconds);
+  });
+
+  resetGame();
+}
+
+function shareResult() {
+  if (!lastResult) return;
+
+  const text = `I scored ${lastResult.wpm} WPM with ${lastResult.accuracy}% accuracy in TYPEX ${lastResult.mode.toUpperCase()}! Can you beat my score?`;
+
+  if (navigator.share) {
+    navigator.share({ title: "My TYPEX Score", text }).catch(() => {});
+  } else if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => {
+      $("shareBtn").textContent = "COPIED!";
+      setTimeout(() => $("shareBtn").textContent = "SHARE RESULT", 1500);
+    }).catch(() => window.prompt("Copy your result:", text));
+  } else {
+    window.prompt("Copy your result:", text);
+  }
+}
+
+$("themeSelect").addEventListener("change", e => setTheme(e.target.value));
+
+$("soundBtn").addEventListener("click", () => {
+  profile.sound = !profile.sound;
+  $("soundBtn").textContent = `Sound: ${profile.sound ? "ON" : "OFF"}`;
+  $("soundBtn").setAttribute("aria-pressed", String(profile.sound));
+  saveProfile();
+});
+
+document.querySelectorAll(".mode").forEach(button => {
+  button.addEventListener("click", () => selectMode(button.dataset.mode));
+});
+
+document.querySelectorAll("[data-duration]").forEach(button => {
+  button.addEventListener("click", () => setDuration(Number(button.dataset.duration)));
+});
+
+$("startBtn").addEventListener("click", startRound);
+$("heroStart").addEventListener("click", () => {
+  $("game").scrollIntoView({ behavior: profile.reducedMotion ? "auto" : "smooth" });
+  if (!running) startRound();
+});
+
+$("restartBtn").addEventListener("click", resetGame);
+$("againBtn").addEventListener("click", startRound);
+$("shareBtn").addEventListener("click", shareResult);
+
+$("typingInput").addEventListener("input", onTyping);
+
+$("typingInput").addEventListener("keydown", event => {
+  if (event.key === "Tab") event.preventDefault();
+});
+
+$("customBtn").addEventListener("click", () => {
+  const text = window.prompt("Paste your custom typing passage:", profile.customText || "");
+  if (text === null) return;
+
+  profile.customText = text.trim();
+  saveProfile();
+  resetGame();
+});
+
+$("difficulty").addEventListener("change", event => {
+  profile.difficulty = event.target.value;
+  saveProfile();
+  resetGame();
+});
+
+$("shakeToggle").addEventListener("change", event => {
+  profile.shake = event.target.checked;
+  saveProfile();
+});
+
+$("reducedMotion").addEventListener("change", event => {
+  profile.reducedMotion = event.target.checked;
+  saveProfile();
+
+  if (profile.reducedMotion) {
+    document.body.classList.remove("chaos-mode", "rgb-mode");
+  } else {
+    document.body.classList.toggle("rgb-mode", profile.theme === "rgb");
+  }
+});
+
+$("clearHistory").addEventListener("click", () => {
+  if (!window.confirm("Clear your saved typing history? Your XP and personal best will remain.")) return;
+  profile.history = [];
+  saveProfile();
+  renderProfile();
+});
+
+window.addEventListener("beforeunload", () => {
+  clearInterval(timerId);
+  clearTimeout(freezeId);
+});
+
+$("difficulty").value = profile.difficulty;
+$("shakeToggle").checked = profile.shake;
+$("reducedMotion").checked = profile.reducedMotion;
+$("soundBtn").textContent = `Sound: ${profile.sound ? "ON" : "OFF"}`;
+$("soundBtn").setAttribute("aria-pressed", String(profile.sound));
+
+setTheme(profile.theme);
+setDuration(duration);
+renderProfile();
+</script>
+</body>
+</html>
