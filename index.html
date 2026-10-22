@@ -3,406 +3,286 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#090b16">
-
+  <meta name="theme-color" content="#080b14">
+  <meta name="description" content="TYPEX — A next-generation typing arcade for PC. Test your speed, memory, accuracy and survival skills.">
   <title>TYPEX — Typing Arcade</title>
-  <meta name="description" content="TYPEX is a futuristic typing arcade featuring Bubble Pop, Word Rain, Survival and Boss Fight.">
 
-  <link rel="stylesheet" href="./style.css">
-  <script src="./script.js" defer></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
 </head>
 
 <body>
-  <div class="app-shell">
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+  <div class="scanlines"></div>
 
-    <header class="topbar">
-      <a href="./" class="brand">
-        <span class="brand-mark">T</span>
-        <span>TYPE<span class="accent">X</span></span>
-      </a>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="TYPEX home">
+      <span class="brand-mark">T<span>X</span></span>
+      <span class="brand-name">TYPE<span>X</span></span>
+    </a>
 
-      <div class="header-actions">
-        <label class="theme-control">
-          <span>THEME</span>
-          <select id="themeSelect" aria-label="Select theme">
-            <option value="cyber">Cyberpunk</option>
-            <option value="rgb">RGB Gaming</option>
-            <option value="hacker">Hacker</option>
-            <option value="pro">Dark Pro</option>
-            <option value="ice">Ice</option>
-          </select>
-        </label>
+    <div class="topbar-center">
+      <span class="status-dot"></span>
+      <span>ARCADE SYSTEM ONLINE</span>
+    </div>
 
-        <button id="soundToggle" class="icon-button" type="button">
-          SOUND: ON
+    <div class="topbar-right">
+      <span class="keyboard-indicator">PC MODE</span>
+      <span class="version">V1.0</span>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <section class="intro-section">
+      <div class="eyebrow">
+        <span class="eyebrow-line"></span>
+        THE ULTIMATE TYPING CHALLENGE
+      </div>
+
+      <h1>YOUR KEYBOARD.<br><span>YOUR WEAPON.</span></h1>
+
+      <p class="intro-copy">
+        Six game modes. One keyboard. No second chances.
+        Train your reflexes and prove your typing power.
+      </p>
+    </section>
+
+    <section class="mode-section" aria-labelledby="mode-heading">
+      <div class="section-heading">
+        <div>
+          <span class="section-kicker">SELECT YOUR MISSION</span>
+          <h2 id="mode-heading">Choose Your Mode</h2>
+        </div>
+
+        <div class="mode-count"><span>06</span> GAME MODES</div>
+      </div>
+
+      <div class="mode-grid">
+        <button class="mode-card selected" data-mode="bubble" type="button">
+          <span class="card-number">01</span>
+          <span class="mode-icon bubble-icon" aria-hidden="true">
+            <span>A</span><span>B</span><span>C</span>
+          </span>
+          <span class="mode-title">Bubble Pop</span>
+          <span class="mode-description">Hit falling letters before they escape.</span>
+          <span class="mode-meta">
+            <span class="difficulty easy">REFLEX</span>
+            <span class="card-arrow">↗</span>
+          </span>
+        </button>
+
+        <button class="mode-card" data-mode="wordrain" type="button">
+          <span class="card-number">02</span>
+          <span class="mode-icon word-icon" aria-hidden="true">WORD<span>_</span></span>
+          <span class="mode-title">Word Rain</span>
+          <span class="mode-description">Type complete words in a falling storm.</span>
+          <span class="mode-meta">
+            <span class="difficulty medium">SPEED</span>
+            <span class="card-arrow">↗</span>
+          </span>
+        </button>
+
+        <button class="mode-card" data-mode="survival" type="button">
+          <span class="card-number">03</span>
+          <span class="mode-icon survival-icon" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </span>
+          <span class="mode-title">Last Stand</span>
+          <span class="mode-description">Defend your base across three lanes.</span>
+          <span class="mode-meta">
+            <span class="difficulty hard">SURVIVAL</span>
+            <span class="card-arrow">↗</span>
+          </span>
+        </button>
+
+        <button class="mode-card" data-mode="boss" type="button">
+          <span class="card-number">04</span>
+          <span class="mode-icon boss-icon" aria-hidden="true">BOSS</span>
+          <span class="mode-title">Boss Fight</span>
+          <span class="mode-description">Attack the boss by typing its code words.</span>
+          <span class="mode-meta">
+            <span class="difficulty hard">BATTLE</span>
+            <span class="card-arrow">↗</span>
+          </span>
+        </button>
+
+        <button class="mode-card" data-mode="bomb" type="button">
+          <span class="card-number">05</span>
+          <span class="mode-icon bomb-icon" aria-hidden="true">00:09</span>
+          <span class="mode-title">Bomb Defuse</span>
+          <span class="mode-description">Enter the exact code before time runs out.</span>
+          <span class="mode-meta">
+            <span class="difficulty hard">TIMED</span>
+            <span class="card-arrow">↗</span>
+          </span>
+        </button>
+
+        <button class="mode-card" data-mode="memory" type="button">
+          <span class="card-number">06</span>
+          <span class="mode-icon memory-icon" aria-hidden="true">?</span>
+          <span class="mode-title">Memory Master</span>
+          <span class="mode-description">Remember the sequence. Type it from memory.</span>
+          <span class="mode-meta">
+            <span class="difficulty medium">MEMORY</span>
+            <span class="card-arrow">↗</span>
+          </span>
         </button>
       </div>
-    </header>
+    </section>
 
-    <main>
-      <section class="hero">
-        <div class="eyebrow">
-          <span class="live-dot"></span>
-          TYPING ARCADE SYSTEM
-        </div>
-
-        <h1>TYPE<span class="accent">X</span></h1>
-
-        <p class="hero-description">
-          Your keyboard is your weapon. Type fast. Survive longer.
-        </p>
-
-        <div class="profile-strip">
-          <div class="profile-stat">
-            <span class="stat-label">TOTAL XP</span>
-            <strong id="totalXP">0</strong>
+    <section class="game-layout">
+      <div class="game-main">
+        <div class="arena-heading">
+          <div>
+            <span class="section-kicker">ACTIVE SIMULATION</span>
+            <h2 id="active-mode-title">Bubble Pop</h2>
           </div>
 
-          <div class="profile-stat">
-            <span class="stat-label">LEVEL</span>
-            <strong id="playerLevel">1</strong>
-          </div>
-
-          <div class="profile-stat">
-            <span class="stat-label">BEST SCORE</span>
-            <strong id="bestScore">0</strong>
-          </div>
-
-          <div class="profile-stat">
-            <span class="stat-label">GAMES PLAYED</span>
-            <strong id="gamesPlayed">0</strong>
+          <div class="arena-state" id="game-status">
+            <span class="status-dot"></span>
+            READY
           </div>
         </div>
-      </section>
 
-      <section class="game-layout">
+        <div class="arena" id="arena">
+          <canvas id="game-canvas" aria-label="Typing game arena"></canvas>
 
-        <aside class="sidebar panel">
-          <div class="section-heading">
-            <span class="section-kicker">01 / SELECT</span>
-            <h2>Game modes</h2>
+          <div class="arena-top-label">
+            <span id="arena-mode-label">MODE 01 / BUBBLE POP</span>
+            <span id="arena-level">LEVEL 01</span>
           </div>
 
-          <div class="mode-list" id="modeList">
-            <button class="mode-card active" data-mode="bubble" type="button">
-              <span class="mode-number">01</span>
-              <span class="mode-copy">
-                <strong>Bubble Pop</strong>
-                <small>Pop falling letters</small>
-              </span>
-              <span class="mode-arrow">→</span>
-            </button>
-
-            <button class="mode-card" data-mode="words" type="button">
-              <span class="mode-number">02</span>
-              <span class="mode-copy">
-                <strong>Word Rain</strong>
-                <small>Type complete words</small>
-              </span>
-              <span class="mode-arrow">→</span>
-            </button>
-
-            <button class="mode-card" data-mode="survival" type="button">
-              <span class="mode-number">03</span>
-              <span class="mode-copy">
-                <strong>Survival</strong>
-                <small>Protect your lives</small>
-              </span>
-              <span class="mode-arrow">→</span>
-            </button>
-
-            <button class="mode-card" data-mode="boss" type="button">
-              <span class="mode-number">04</span>
-              <span class="mode-copy">
-                <strong>Boss Fight</strong>
-                <small>Attack with words</small>
-              </span>
-              <span class="mode-arrow">→</span>
-            </button>
-
-            <button class="mode-card" data-mode="bomb" type="button">
-              <span class="mode-number">05</span>
-              <span class="mode-copy">
-                <strong>Bomb Typing</strong>
-                <small>Defuse falling bombs</small>
-              </span>
-              <span class="mode-arrow">→</span>
-            </button>
-
-            <button class="mode-card" data-mode="memory" type="button">
-              <span class="mode-number">06</span>
-              <span class="mode-copy">
-                <strong>Memory Mode</strong>
-                <small>Remember the letters</small>
-              </span>
-              <span class="mode-arrow">→</span>
-            </button>
-          </div>
-
-          <div class="sidebar-note">
-            <span class="note-indicator"></span>
-            <span>LOCAL ARCADE<br>Progress saved on this device</span>
-          </div>
-        </aside>
-
-        <section class="arena-column">
-          <div class="game-toolbar panel">
-            <div>
-              <span class="section-kicker">02 / ARENA</span>
-              <h2 id="modeTitle">Bubble Pop</h2>
-            </div>
-
-            <label class="duration-control">
-              <span>TIME</span>
-              <select id="durationSelect" aria-label="Game duration">
-                <option value="30">30 SEC</option>
-                <option value="60" selected>60 SEC</option>
-                <option value="120">120 SEC</option>
-              </select>
-            </label>
-          </div>
-
-          <div class="arena panel" id="arena">
-            <div class="arena-grid"></div>
-
-            <div class="arena-topline">
-              <span id="gameStatus" class="status-badge">SYSTEM READY</span>
-              <span class="arena-coordinate">TX-01 / ARCADE</span>
-            </div>
-
-            <div class="boss-panel hidden" id="bossPanel">
-              <div class="boss-topline">
-                <span>HOSTILE ENTITY</span>
-                <span id="bossHealthText">100%</span>
-              </div>
-              <div class="boss-health-track">
-                <div id="bossHealthFill" class="boss-health-fill"></div>
-              </div>
-              <div class="boss-visual" id="bossVisual">
-                <span>BOSS</span>
-              </div>
-            </div>
-
-            <canvas id="gameCanvas" aria-label="TYPEX game arena">
-              Your browser does not support canvas.
-            </canvas>
-
-            <div id="arenaOverlay" class="arena-overlay">
-              <div class="overlay-content">
-                <div class="overlay-symbol">TX</div>
-                <span class="section-kicker">READY PLAYER ONE?</span>
-                <h3 id="overlayTitle">Enter the arena.</h3>
-                <p id="overlayDescription">
-                  Type the letters inside the falling bubbles before they reach the bottom.
-                </p>
-                <button id="startButton" class="primary-button" type="button">
-                  START GAME <span>→</span>
-                </button>
-              </div>
-            </div>
-
-            <div class="arena-bottomline">
-              <span>ENGINE <strong>TYPEX CORE</strong></span>
-              <span>INPUT <strong id="inputStatus">WAITING</strong></span>
-              <span>BUILD <strong>01.0</strong></span>
-            </div>
-          </div>
-
-          <div class="game-stats">
-            <div class="metric panel">
-              <span>SCORE</span>
-              <strong id="scoreValue">0</strong>
-            </div>
-
-            <div class="metric panel">
-              <span>COMBO</span>
-              <strong id="comboValue">x0</strong>
-            </div>
-
-            <div class="metric panel">
-              <span>ACCURACY</span>
-              <strong id="accuracyValue">100%</strong>
-            </div>
-
-            <div class="metric panel">
-              <span>TIME LEFT</span>
-              <strong id="timeValue">60s</strong>
-            </div>
-          </div>
-
-          <div class="typing-panel panel">
-            <div class="typing-heading">
-              <div>
-                <span class="section-kicker">03 / INPUT</span>
-                <h3>Combat keyboard</h3>
-              </div>
-              <span id="typingHint">Type the matching letter</span>
-            </div>
-
-            <form id="typingForm" autocomplete="off">
-              <input
-                id="typingInput"
-                type="text"
-                placeholder="Start the game to activate input..."
-                aria-label="Type letters or words here"
-                autocomplete="off"
-                autocapitalize="off"
-                autocorrect="off"
-                spellcheck="false"
-                enterkeyhint="done"
-                disabled
-              >
-              <button id="submitButton" type="submit" disabled>FIRE ↗</button>
-            </form>
-
-            <p class="input-tip" id="inputTip">
-              Desktop: start typing. Mobile: tap the input field to open your keyboard.
+          <div class="arena-overlay" id="start-overlay">
+            <div class="overlay-symbol">TX</div>
+            <p class="overlay-kicker">SYSTEM READY</p>
+            <h3 id="overlay-title">Ready to pop?</h3>
+            <p id="overlay-description">
+              Type the letter shown inside a bubble to destroy it.
             </p>
-          </div>
-
-          <div class="powerup-panel panel">
-            <div class="section-heading compact-heading">
-              <span class="section-kicker">04 / ABILITIES</span>
-              <h3>Power-ups</h3>
-            </div>
-
-            <div class="powerup-list">
-              <button class="powerup-button" data-power="slow" type="button" disabled>
-                <span class="powerup-symbol">S</span>
-                <span><strong>Slow-Mo</strong><small>Slow falling objects</small></span>
-                <kbd>1</kbd>
-              </button>
-
-              <button class="powerup-button" data-power="bomb" type="button" disabled>
-                <span class="powerup-symbol">B</span>
-                <span><strong>Screen Bomb</strong><small>Clear visible targets</small></span>
-                <kbd>2</kbd>
-              </button>
-
-              <button class="powerup-button" data-power="shield" type="button" disabled>
-                <span class="powerup-symbol">D</span>
-                <span><strong>Shield</strong><small>Block one miss</small></span>
-                <kbd>3</kbd>
-              </button>
-
-              <button class="powerup-button" data-power="freeze" type="button" disabled>
-                <span class="powerup-symbol">F</span>
-                <span><strong>Freeze</strong><small>Freeze falling targets</small></span>
-                <kbd>4</kbd>
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <aside class="right-column">
-          <section class="panel info-panel">
-            <div class="section-heading">
-              <span class="section-kicker">05 / PLAYER</span>
-              <h2>Your status</h2>
-            </div>
-
-            <div class="level-row">
-              <div class="level-badge" id="levelBadge">01</div>
-              <div class="level-info">
-                <strong id="levelName">Rookie Typist</strong>
-                <span id="xpProgressText">0 / 100 XP</span>
-              </div>
-            </div>
-
-            <div class="xp-track">
-              <div id="xpProgressFill" class="xp-fill"></div>
-            </div>
-
-            <div class="status-divider"></div>
-
-            <div class="status-row">
-              <span>Lives remaining</span>
-              <strong id="livesValue">♥ ♥ ♥</strong>
-            </div>
-
-            <div class="status-row">
-              <span>Targets destroyed</span>
-              <strong id="destroyedValue">0</strong>
-            </div>
-
-            <div class="status-row">
-              <span>Current level</span>
-              <strong id="difficultyValue">01</strong>
-            </div>
-
-            <div class="status-row">
-              <span>Best combo</span>
-              <strong id="bestComboValue">0</strong>
-            </div>
-          </section>
-
-          <section class="panel achievement-panel">
-            <div class="section-heading">
-              <span class="section-kicker">06 / MILESTONES</span>
-              <h2>Achievements</h2>
-            </div>
-
-            <div id="achievementList" class="achievement-list">
-              <div class="achievement-item">
-                <span class="achievement-icon">01</span>
-                <span><strong>First Strike</strong><small>Pop your first target</small></span>
-                <span class="achievement-lock">LOCKED</span>
-              </div>
-
-              <div class="achievement-item">
-                <span class="achievement-icon">02</span>
-                <span><strong>Combo Master</strong><small>Reach a 10x combo</small></span>
-                <span class="achievement-lock">LOCKED</span>
-              </div>
-
-              <div class="achievement-item">
-                <span class="achievement-icon">03</span>
-                <span><strong>Survivor</strong><small>Finish a game</small></span>
-                <span class="achievement-lock">LOCKED</span>
-              </div>
-            </div>
-          </section>
-
-          <section class="panel history-panel">
-            <div class="section-heading">
-              <span class="section-kicker">07 / RECORDS</span>
-              <h2>Recent games</h2>
-            </div>
-
-            <div id="historyList" class="history-list">
-              <p class="empty-state">Your battle history will appear here.</p>
-            </div>
-
-            <button id="clearHistoryButton" class="text-button" type="button">
-              CLEAR HISTORY
+            <button class="primary-button" id="start-button" type="button">
+              <span>START GAME</span><span class="button-arrow">→</span>
             </button>
-          </section>
-        </aside>
-      </section>
+            <p class="keyboard-hint">PRESS <kbd>ENTER</kbd> TO BEGIN</p>
+          </div>
 
-      <section id="resultPanel" class="result-panel panel hidden">
-        <div class="section-heading">
-          <span class="section-kicker">08 / MISSION REPORT</span>
-          <h2 id="resultTitle">Game complete</h2>
+          <div class="arena-overlay result-overlay hidden" id="result-overlay">
+            <div class="result-symbol" id="result-symbol">!</div>
+            <p class="overlay-kicker" id="result-kicker">SIMULATION COMPLETE</p>
+            <h3 id="result-title">Game Over</h3>
+            <p id="result-description">Your mission has ended.</p>
+
+            <div class="result-stats">
+              <div><span>SCORE</span><strong id="result-score">0</strong></div>
+              <div><span>ACCURACY</span><strong id="result-accuracy">100%</strong></div>
+              <div><span>WPM</span><strong id="result-wpm">0</strong></div>
+            </div>
+
+            <button class="primary-button" id="restart-button" type="button">
+              <span>PLAY AGAIN</span><span class="button-arrow">↻</span>
+            </button>
+          </div>
+
+          <div class="arena-bottom-label">
+            <span><span class="tiny-dot"></span> INPUT SYSTEM ACTIVE</span>
+            <span id="arena-time">00:00</span>
+          </div>
         </div>
 
-        <div class="result-grid">
-          <div><span>FINAL SCORE</span><strong id="finalScore">0</strong></div>
-          <div><span>TARGETS</span><strong id="finalTargets">0</strong></div>
-          <div><span>ACCURACY</span><strong id="finalAccuracy">100%</strong></div>
-          <div><span>XP EARNED</span><strong id="finalXP">0</strong></div>
+        <div class="typing-panel">
+          <div class="typing-label">
+            <span class="input-status-dot"></span>
+            <label for="typing-input" id="typing-label-text">ENTER TARGET LETTER</label>
+          </div>
+
+          <form id="typing-form" autocomplete="off">
+            <input
+              id="typing-input"
+              type="text"
+              placeholder="Start a game to begin..."
+              maxlength="80"
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+              disabled
+            >
+            <button id="submit-button" type="submit" disabled>SUBMIT <span>↗</span></button>
+          </form>
+
+          <div class="typing-footer">
+            <span id="typing-instruction">Select a mode and press Start Game.</span>
+            <span class="enter-hint"><kbd>ENTER</kbd> SUBMIT</span>
+          </div>
+        </div>
+      </div>
+
+      <aside class="stats-sidebar">
+        <div class="sidebar-heading">
+          <span class="section-kicker">LIVE TELEMETRY</span>
+          <span class="telemetry-icon">⌁</span>
         </div>
 
-        <button id="playAgainButton" class="primary-button" type="button">
-          PLAY AGAIN →
-        </button>
-      </section>
-    </main>
+        <div class="stat-card score-card">
+          <div class="stat-top">
+            <span>TOTAL SCORE</span>
+            <span class="stat-symbol">✳</span>
+          </div>
+          <div class="stat-value" id="score-value">000000</div>
+          <div class="stat-bottom">
+            <span>MISSION POINTS</span>
+            <span id="score-change">+0</span>
+          </div>
+        </div>
 
-    <footer class="footer">
-      <span>TYPEX ARCADE SYSTEM</span>
-      <span>BUILT FOR SPEED. DESIGNED FOR SURVIVAL.</span>
+        <div class="stat-row">
+          <div class="stat-card">
+            <div class="stat-top"><span>ACCURACY</span><span>◎</span></div>
+            <div class="stat-value"><span id="accuracy-value">100</span><small>%</small></div>
+            <div class="mini-track"><span id="accuracy-bar"></span></div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-top"><span>WPM</span><span>⌁</span></div>
+            <div class="stat-value" id="wpm-value">0</div>
+            <div class="stat-caption">WORDS / MIN</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-top"><span>COMBO STREAK</span><span>⚡</span></div>
+          <div class="combo-display">
+            <div class="combo-number" id="combo-value">x0</div>
+            <div class="combo-track"><span id="combo-bar"></span></div>
+          </div>
+          <div class="stat-bottom"><span>CONSECUTIVE HITS</span><span id="best-combo">BEST 0</span></div>
+        </div>
+
+        <div class="stat-card mission-card">
+          <div class="stat-top"><span>MISSION STATUS</span><span>◈</span></div>
+          <div class="mission-line"><span>MODE</span><strong id="mission-mode">BUBBLE POP</strong></div>
+          <div class="mission-line"><span>LIVES</span><strong id="lives-value">3 / 3</strong></div>
+          <div class="mission-line"><span>TARGETS HIT</span><strong id="hits-value">0</strong></div>
+          <div class="mission-line"><span>MISSES</span><strong id="misses-value">0</strong></div>
+        </div>
+
+        <div class="control-card">
+          <span class="section-kicker">QUICK CONTROLS</span>
+          <div class="control-line"><span><kbd>ENTER</kbd></span><span>Start / Submit</span></div>
+          <div class="control-line"><span><kbd>ESC</kbd></span><span>Pause / Resume</span></div>
+          <div class="control-line"><span><kbd>TAB</kbd></span><span>Focus input</span></div>
+        </div>
+      </aside>
+    </section>
+
+    <footer class="page-footer">
+      <div class="footer-brand">TYPE<span>X</span> <span class="footer-divider">/</span> TYPING ARCADE</div>
+      <div class="footer-message">BUILT FOR SPEED. DESIGNED FOR FOCUS.</div>
+      <div class="footer-version">SYSTEM ONLINE <span class="status-dot"></span></div>
     </footer>
-  </div>
+  </main>
 </body>
 </html>
