@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#080b14">
-  <meta name="description" content="TYPEX — A next-generation typing arcade for PC. Test your speed, memory, accuracy and survival skills.">
+  <meta name="theme-color" content="#070a13">
+  <meta name="description" content="TYPEX — Multi-Engine Cyberpunk Typing Arcade.">
   <title>TYPEX — Typing Arcade</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="style.css">
   <script src="script.js" defer></script>
@@ -28,12 +28,12 @@
 
     <div class="topbar-center">
       <span class="status-dot"></span>
-      <span>ARCADE SYSTEM ONLINE</span>
+      <span>ARCADE CORE ACTIVE</span>
     </div>
 
     <div class="topbar-right">
       <span class="keyboard-indicator">PC MODE</span>
-      <span class="version">V1.0</span>
+      <span class="version">V2.0</span>
     </div>
   </header>
 
@@ -41,14 +41,13 @@
     <section class="intro-section">
       <div class="eyebrow">
         <span class="eyebrow-line"></span>
-        THE ULTIMATE TYPING CHALLENGE
+        DISCRETE MULTI-ENGINE SIMULATOR
       </div>
 
       <h1>YOUR KEYBOARD.<br><span>YOUR WEAPON.</span></h1>
 
       <p class="intro-copy">
-        Six game modes. One keyboard. No second chances.
-        Train your reflexes and prove your typing power.
+        Six completely distinct combat systems. Master physics bubbles, lane defense, 2D fighter combat, and tactical ordnance.
       </p>
     </section>
 
@@ -56,10 +55,10 @@
       <div class="section-heading">
         <div>
           <span class="section-kicker">SELECT YOUR MISSION</span>
-          <h2 id="mode-heading">Choose Your Mode</h2>
+          <h2 id="mode-heading">Choose Your Game</h2>
         </div>
 
-        <div class="mode-count"><span>06</span> GAME MODES</div>
+        <div class="mode-count"><span>06</span> GAMES</div>
       </div>
 
       <div class="mode-grid">
@@ -69,9 +68,9 @@
             <span>A</span><span>B</span><span>C</span>
           </span>
           <span class="mode-title">Bubble Pop</span>
-          <span class="mode-description">Hit falling letters before they escape.</span>
+          <span class="mode-description">Single-tap physics bubbles with variable speed control.</span>
           <span class="mode-meta">
-            <span class="difficulty easy">REFLEX</span>
+            <span class="difficulty easy">PHYSICS</span>
             <span class="card-arrow">↗</span>
           </span>
         </button>
@@ -80,7 +79,7 @@
           <span class="card-number">02</span>
           <span class="mode-icon word-icon" aria-hidden="true">WORD<span>_</span></span>
           <span class="mode-title">Word Rain</span>
-          <span class="mode-description">Type complete words in a falling storm.</span>
+          <span class="mode-description">Type matrix code words falling down the digital perimeter.</span>
           <span class="mode-meta">
             <span class="difficulty medium">SPEED</span>
             <span class="card-arrow">↗</span>
@@ -93,20 +92,20 @@
             <span></span><span></span><span></span>
           </span>
           <span class="mode-title">Last Stand</span>
-          <span class="mode-description">Defend your base across three lanes.</span>
+          <span class="mode-description">Base defense. Neutralize incoming lane invaders.</span>
           <span class="mode-meta">
-            <span class="difficulty hard">SURVIVAL</span>
+            <span class="difficulty hard">DEFENSE</span>
             <span class="card-arrow">↗</span>
           </span>
         </button>
 
         <button class="mode-card" data-mode="boss" type="button">
           <span class="card-number">04</span>
-          <span class="mode-icon boss-icon" aria-hidden="true">BOSS</span>
-          <span class="mode-title">Boss Fight</span>
-          <span class="mode-description">Attack the boss by typing its code words.</span>
+          <span class="mode-icon boss-icon" aria-hidden="true">BRAWL</span>
+          <span class="mode-title">Boss Brawler</span>
+          <span class="mode-description">2D Mecha fighter duel. Enter combos to strike and counter.</span>
           <span class="mode-meta">
-            <span class="difficulty hard">BATTLE</span>
+            <span class="difficulty hard">FIGHTER</span>
             <span class="card-arrow">↗</span>
           </span>
         </button>
@@ -115,9 +114,9 @@
           <span class="card-number">05</span>
           <span class="mode-icon bomb-icon" aria-hidden="true">00:09</span>
           <span class="mode-title">Bomb Defuse</span>
-          <span class="mode-description">Enter the exact code before time runs out.</span>
+          <span class="mode-description">Tactical defusal terminal under real-time audio ticking.</span>
           <span class="mode-meta">
-            <span class="difficulty hard">TIMED</span>
+            <span class="difficulty hard">TACTICAL</span>
             <span class="card-arrow">↗</span>
           </span>
         </button>
@@ -126,9 +125,9 @@
           <span class="card-number">06</span>
           <span class="mode-icon memory-icon" aria-hidden="true">?</span>
           <span class="mode-title">Memory Master</span>
-          <span class="mode-description">Remember the sequence. Type it from memory.</span>
+          <span class="mode-description">Neural cipher retention. Memorize patterns before purge.</span>
           <span class="mode-meta">
-            <span class="difficulty medium">MEMORY</span>
+            <span class="difficulty medium">NEURAL</span>
             <span class="card-arrow">↗</span>
           </span>
         </button>
@@ -139,13 +138,13 @@
       <div class="game-main">
         <div class="arena-heading">
           <div>
-            <span class="section-kicker">ACTIVE SIMULATION</span>
+            <span class="section-kicker">ACTIVE SYSTEM</span>
             <h2 id="active-mode-title">Bubble Pop</h2>
           </div>
 
           <div class="arena-state" id="game-status">
             <span class="status-dot"></span>
-            READY
+            STANDBY
           </div>
         </div>
 
@@ -154,27 +153,36 @@
 
           <div class="arena-top-label">
             <span id="arena-mode-label">MODE 01 / BUBBLE POP</span>
+
+            <!-- Bubble Speed Selector -->
+            <div class="speed-selector" id="bubble-speed-controls">
+              <span class="speed-label">SPEED:</span>
+              <button type="button" class="speed-btn active" data-speed="1">1.0x</button>
+              <button type="button" class="speed-btn" data-speed="1.6">1.6x</button>
+              <button type="button" class="speed-btn" data-speed="2.3">2.3x</button>
+            </div>
+
             <span id="arena-level">LEVEL 01</span>
           </div>
 
           <div class="arena-overlay" id="start-overlay">
             <div class="overlay-symbol">TX</div>
-            <p class="overlay-kicker">SYSTEM READY</p>
+            <p class="overlay-kicker">DISCRETE ENGINE READY</p>
             <h3 id="overlay-title">Ready to pop?</h3>
             <p id="overlay-description">
-              Type the letter shown inside a bubble to destroy it.
+              Single-tap active letters inside bubbles before they reach top airspace.
             </p>
             <button class="primary-button" id="start-button" type="button">
-              <span>START GAME</span><span class="button-arrow">→</span>
+              <span>ENGAGE GAME</span><span class="button-arrow">→</span>
             </button>
-            <p class="keyboard-hint">PRESS <kbd>ENTER</kbd> TO BEGIN</p>
+            <p class="keyboard-hint">PRESS <kbd>ENTER</kbd> TO ENGAGE</p>
           </div>
 
           <div class="arena-overlay result-overlay hidden" id="result-overlay">
             <div class="result-symbol" id="result-symbol">!</div>
             <p class="overlay-kicker" id="result-kicker">SIMULATION COMPLETE</p>
             <h3 id="result-title">Game Over</h3>
-            <p id="result-description">Your mission has ended.</p>
+            <p id="result-description">System integrity exhausted.</p>
 
             <div class="result-stats">
               <div><span>SCORE</span><strong id="result-score">0</strong></div>
@@ -188,7 +196,7 @@
           </div>
 
           <div class="arena-bottom-label">
-            <span><span class="tiny-dot"></span> INPUT SYSTEM ACTIVE</span>
+            <span><span class="tiny-dot"></span> KEYBOARD LINK ONLINE</span>
             <span id="arena-time">00:00</span>
           </div>
         </div>
@@ -203,19 +211,19 @@
             <input
               id="typing-input"
               type="text"
-              placeholder="Start a game to begin..."
+              placeholder="Start game to begin..."
               maxlength="80"
               autocomplete="off"
               autocapitalize="off"
               spellcheck="false"
               disabled
             >
-            <button id="submit-button" type="submit" disabled>SUBMIT <span>↗</span></button>
+            <button id="submit-button" type="submit" disabled>TRANSMIT <span>↗</span></button>
           </form>
 
           <div class="typing-footer">
-            <span id="typing-instruction">Select a mode and press Start Game.</span>
-            <span class="enter-hint"><kbd>ENTER</kbd> SUBMIT</span>
+            <span id="typing-instruction">Select a mode and press Engage Game.</span>
+            <span class="enter-hint"><kbd>ENTER</kbd> TO TRANSMIT</span>
           </div>
         </div>
       </div>
@@ -233,7 +241,7 @@
           </div>
           <div class="stat-value" id="score-value">000000</div>
           <div class="stat-bottom">
-            <span>MISSION POINTS</span>
+            <span>MISSION BONUS</span>
             <span id="score-change">+0</span>
           </div>
         </div>
@@ -248,7 +256,7 @@
           <div class="stat-card">
             <div class="stat-top"><span>WPM</span><span>⌁</span></div>
             <div class="stat-value" id="wpm-value">0</div>
-            <div class="stat-caption">WORDS / MIN</div>
+            <div class="stat-caption">KEYBOARD VELOCITY</div>
           </div>
         </div>
 
@@ -262,26 +270,26 @@
         </div>
 
         <div class="stat-card mission-card">
-          <div class="stat-top"><span>MISSION STATUS</span><span>◈</span></div>
-          <div class="mission-line"><span>MODE</span><strong id="mission-mode">BUBBLE POP</strong></div>
-          <div class="mission-line"><span>LIVES</span><strong id="lives-value">3 / 3</strong></div>
-          <div class="mission-line"><span>TARGETS HIT</span><strong id="hits-value">0</strong></div>
-          <div class="mission-line"><span>MISSES</span><strong id="misses-value">0</strong></div>
+          <div class="stat-top"><span>TELEMETRY MATRIX</span><span>◈</span></div>
+          <div class="mission-line"><span>ACTIVE ENGINE</span><strong id="mission-mode">BUBBLE</strong></div>
+          <div class="mission-line"><span>LIFE INTEGRITY</span><strong id="lives-value">3 / 3</strong></div>
+          <div class="mission-line"><span>CONFIRMED HITS</span><strong id="hits-value">0</strong></div>
+          <div class="mission-line"><span>BREACH ERRORS</span><strong id="misses-value">0</strong></div>
         </div>
 
         <div class="control-card">
-          <span class="section-kicker">QUICK CONTROLS</span>
+          <span class="section-kicker">CONTROLS</span>
           <div class="control-line"><span><kbd>ENTER</kbd></span><span>Start / Submit</span></div>
           <div class="control-line"><span><kbd>ESC</kbd></span><span>Pause / Resume</span></div>
-          <div class="control-line"><span><kbd>TAB</kbd></span><span>Focus input</span></div>
+          <div class="control-line"><span><kbd>TAB</kbd></span><span>Focus Input</span></div>
         </div>
       </aside>
     </section>
 
     <footer class="page-footer">
-      <div class="footer-brand">TYPE<span>X</span> <span class="footer-divider">/</span> TYPING ARCADE</div>
-      <div class="footer-message">BUILT FOR SPEED. DESIGNED FOR FOCUS.</div>
-      <div class="footer-version">SYSTEM ONLINE <span class="status-dot"></span></div>
+      <div class="footer-brand">TYPE<span>X</span> <span class="footer-divider">/</span> DISCRETE COMBAT ARCADE</div>
+      <div class="footer-message">DESIGNED FOR RAW SPEED & HIGH FOCUS.</div>
+      <div class="footer-version">ARCADE READY <span class="status-dot"></span></div>
     </footer>
   </main>
 </body>
