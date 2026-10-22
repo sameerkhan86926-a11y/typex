@@ -1,1342 +1,2346 @@
 "use strict";
 
+/* ==========================================
+   TYPEX — TYPING ARCADE
+   File: script.js
+   Six distinct PC typing game modes
+   ========================================== */
+
 (() => {
   const $ = (selector) => document.querySelector(selector);
-  const $$ = (selector) => [...document.querySelectorAll(selector)];
 
-  const canvas = $("#gameCanvas");
+  const canvas = $("#game-canvas");
   const ctx = canvas.getContext("2d");
 
-  const input = $("#typingInput");
-  const form = $("#typingForm");
-  const submitButton = $("#submitButton");
-  const startButton = $("#startButton");
-  const overlay = $("#arenaOverlay");
-  const resultPanel = $("#resultPanel");
   const arena = $("#arena");
+  const startOverlay = $("#start-overlay");
+  const resultOverlay = $("#result-overlay");
 
-  const STORE_KEY = "typex_arcade_profile_v1";
+  const startButton = $("#start-button");
+  const restartButton = $("#restart-button");
+
+  const typingForm = $("#typing-form");
+  const typingInput = $("#typing-input");
+  const submitButton = $("#submit-button");
+
+  const modeCards = [...document.querySelectorAll(".mode-card")];
 
   const MODES = {
     bubble: {
       title: "Bubble Pop",
-      description: "Type the letter inside each falling bubble.",
-      hint: "Type a matching letter",
-      spawn: 0.95,
-      lives: 5,
-      words: false
+      label: "MODE 01 / BUBBLE POP",
+      instruction: "Type the letter displayed inside a bubble.",
+      inputLabel: "ENTER TARGET LETTER",
+      placeholder: "Type a bubble letter...",
+      overlayTitle: "Ready to pop?",
+      overlayDescription:
+        "Type the letter shown inside a bubble before it escapes.",
+      lives: 3
     },
-    words: {
+
+    wordrain: {
       title: "Word Rain",
-      description: "Type the complete word shown on a falling target.",
-      hint: "Type a complete word, then press FIRE",
-      spawn: 1.65,
-      lives: 5,
-      words: true
+      label: "MODE 02 / WORD RAIN",
+      instruction: "Type a complete falling word and press Enter.",
+      inputLabel: "TYPE THE FALLING WORD",
+      placeholder: "Type the complete word...",
+      overlayTitle: "Catch the words.",
+      overlayDescription:
+        "Type complete words before they reach the bottom.",
+      lives: 3
     },
+
     survival: {
-      title: "Survival",
-      description: "Survive the falling targets. Every miss costs a life.",
-      hint: "Type a matching letter",
-      spawn: 0.78,
-      lives: 3,
-      words: false
+      title: "Last Stand",
+      label: "MODE 03 / LAST STAND",
+      instruction: "Type an enemy's code to destroy it.",
+      inputLabel: "ENTER ENEMY CODE",
+      placeholder: "Type an enemy code...",
+      overlayTitle: "Defend your base.",
+      overlayDescription:
+        "Enemies approach through three lanes. Destroy their codes before they breach your defense.",
+      lives: 3
     },
+
     boss: {
       title: "Boss Fight",
-      description: "Type the falling attack words to damage the boss.",
-      hint: "Type the complete attack word",
-      spawn: 2.3,
-      lives: 5,
-      words: true
+      label: "MODE 04 / BOSS FIGHT",
+      instruction: "Type the attack word to damage the boss.",
+      inputLabel: "ENTER ATTACK WORD",
+      placeholder: "Type the attack word...",
+      overlayTitle: "Challenge the boss.",
+      overlayDescription:
+        "Hit the boss with attack words. Every correct word reduces its health.",
+      lives: 3
     },
+
     bomb: {
-      title: "Bomb Typing",
-      description: "Defuse bombs before they reach the bottom.",
-      hint: "Type the bomb code and press FIRE",
-      spawn: 1.3,
-      lives: 3,
-      words: true
+      title: "Bomb Defuse",
+      label: "MODE 05 / BOMB DEFUSE",
+      instruction: "Enter the exact bomb code before the countdown ends.",
+      inputLabel: "ENTER DEFUSAL CODE",
+      placeholder: "Type the exact code...",
+      overlayTitle: "Time is ticking.",
+      overlayDescription:
+        "Type the exact code before the bomb timer reaches zero. Every defusal earns points.",
+      lives: 3
     },
+
     memory: {
-      title: "Memory Mode",
-      description: "Remember the target's letter before it disappears.",
-      hint: "Remember and type the target letter",
-      spawn: 1.25,
-      lives: 4,
-      words: false
+      title: "Memory Master",
+      label: "MODE 06 / MEMORY MASTER",
+      instruction: "Memorize the sequence, then type it after it disappears.",
+      inputLabel: "RECALL THE SEQUENCE",
+      placeholder: "Type the sequence...",
+      overlayTitle: "Trust your memory.",
+      overlayDescription:
+        "A sequence appears briefly. Memorize it, then reproduce it exactly.",
+      lives: 3
     }
   };
 
   const WORDS = [
-    "code", "speed", "pixel", "neon", "cyber", "power",
-    "ghost", "laser", "storm", "quick", "shift", "flash",
-    "matrix", "rocket", "shadow", "hunter", "dragon",
-    "typing", "arcade", "legend", "system", "quantum",
-    "velocity", "survival", "warrior", "glitch"
+    "neon", "matrix", "cyber", "pixel", "shadow",
+    "quantum", "vector", "signal", "rocket", "system",
+    "phantom", "reactor", "plasma", "thunder", "crystal",
+    "velocity", "terminal", "warrior", "digital", "infinity",
+    "lightning", "protocol", "overdrive", "firewall", "vortex",
+    "sentinel", "hyperion", "starlight", "nightfall", "titanium",
+    "spectrum", "frequency", "algorithm", "blueprint", "eclipse"
   ];
 
-  const THEMES = {
-    cyber: { accent: "#a58bff", glow: "rgba(165,139,255,.5)" },
-    rgb: { accent: "#ff54d9", glow: "rgba(255,84,217,.5)" },
-    hacker: { accent: "#4cff88", glow: "rgba(76,255,136,.5)" },
-    pro: { accent: "#aebdce", glow: "rgba(174,189,206,.45)" },
-    ice: { accent: "#58d9ff", glow: "rgba(88,217,255,.5)" }
+  const MEMORY_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const LANES = [0.25, 0.5, 0.75];
+
+  const state = {
+    mode: "bubble",
+    running: false,
+    paused: false,
+    ended: false,
+
+    score: 0,
+    hits: 0,
+    misses: 0,
+    typedCharacters: 0,
+    correctCharacters: 0,
+
+    combo: 0,
+    bestCombo: 0,
+    lives: 3,
+
+    targets: [],
+    particles: [],
+    floatingTexts: [],
+
+    startedAt: 0,
+    elapsed: 0,
+    lastFrame: 0,
+    lastSpawn: 0,
+
+    level: 1,
+    targetId: 0,
+
+    bossHealth: 100,
+    bossMaxHealth: 100,
+    bossAttackWord: "",
+
+    bombCode: "",
+    bombDeadline: 0,
+    bombsDefused: 0,
+
+    memorySequence: "",
+    memoryPhase: "show",
+    memoryDeadline: 0,
+    memoryRound: 0,
+
+    survivalDistance: 0,
+    nextEnemyId: 0,
+
+    lastScore: 0,
+    audioContext: null
   };
 
-  const ACHIEVEMENTS = [
-    {
-      id: "first",
-      title: "First Strike",
-      description: "Pop your first target",
-      check: (p) => p.totalDestroyed >= 1
-    },
-    {
-      id: "combo",
-      title: "Combo Master",
-      description: "Reach a 10x combo",
-      check: (p) => p.bestCombo >= 10
-    },
-    {
-      id: "survivor",
-      title: "Survivor",
-      description: "Finish your first game",
-      check: (p) => p.gamesPlayed >= 1
-    },
-    {
-      id: "century",
-      title: "Century Club",
-      description: "Earn 1000 points in one game",
-      check: (p) => p.bestScore >= 1000
-    },
-    {
-      id: "boss",
-      title: "Boss Breaker",
-      description: "Defeat a boss",
-      check: (p) => p.bossWins >= 1
-    }
-  ];
-
-  function loadProfile() {
-    try {
-      const raw = localStorage.getItem(STORE_KEY);
-      if (raw) {
-        const p = JSON.parse(raw);
-        return {
-          totalXP: Number(p.totalXP) || 0,
-          bestScore: Number(p.bestScore) || 0,
-          gamesPlayed: Number(p.gamesPlayed) || 0,
-          totalDestroyed: Number(p.totalDestroyed) || 0,
-          bestCombo: Number(p.bestCombo) || 0,
-          bossWins: Number(p.bossWins) || 0,
-          unlocked: Array.isArray(p.unlocked) ? p.unlocked : [],
-          history: Array.isArray(p.history) ? p.history.slice(0, 8) : [],
-          theme: THEMES[p.theme] ? p.theme : "cyber",
-          sound: p.sound !== false
-        };
-      }
-    } catch (error) {
-      console.warn("Could not read TYPEX profile.", error);
-    }
-
-    return {
-      totalXP: 0,
-      bestScore: 0,
-      gamesPlayed: 0,
-      totalDestroyed: 0,
-      bestCombo: 0,
-      bossWins: 0,
-      unlocked: [],
-      history: [],
-      theme: "cyber",
-      sound: true
-    };
-  }
-
-  const profile = loadProfile();
-
-  let selectedMode = "bubble";
-  let running = false;
   let animationId = 0;
-  let lastFrame = 0;
-  let spawnClock = 0;
-  let elapsed = 0;
-  let remaining = 60;
-  let score = 0;
-  let combo = 0;
-  let bestComboThisGame = 0;
-  let destroyed = 0;
-  let mistakes = 0;
-  let attempts = 0;
-  let lives = 5;
-  let level = 1;
-  let bossHealth = 100;
-  let totalTargets = 0;
-  let wordBuffer = "";
-  let activePower = null;
-  let powerTime = 0;
-  let shieldCharges = 0;
-  let doubleXP = false;
-  let soundContext = null;
-  let gameObjects = [];
-  let particles = [];
-  let memoryTarget = null;
-  let memoryClock = 0;
-  let lastSpawn = 0;
   let canvasWidth = 0;
   let canvasHeight = 0;
-  let dpr = 1;
-  let hitFlash = 0;
-  let currentXP = 0;
-  let pointerTarget = null;
+  let pixelRatio = 1;
+  let resizeObserver = null;
 
-  function saveProfile() {
-    try {
-      localStorage.setItem(STORE_KEY, JSON.stringify(profile));
-    } catch (error) {
-      console.warn("Could not save TYPEX profile.", error);
-    }
-  }
-
-  function safeText(value) {
-    return String(value ?? "");
-  }
-
-  function getLevel(xp = profile.totalXP) {
-    return Math.floor(Math.max(0, xp) / 100) + 1;
-  }
-
-  function getLevelName(levelNumber) {
-    if (levelNumber >= 25) return "TYPEX Legend";
-    if (levelNumber >= 15) return "Arcade Master";
-    if (levelNumber >= 10) return "Elite Typist";
-    if (levelNumber >= 5) return "Combat Typist";
-    if (levelNumber >= 3) return "Quick Fingers";
-    return "Rookie Typist";
-  }
-
-  function updateProfileUI() {
-    $("#totalXP").textContent = profile.totalXP.toLocaleString();
-    $("#playerLevel").textContent = getLevel();
-    $("#bestScore").textContent = profile.bestScore.toLocaleString();
-    $("#gamesPlayed").textContent = profile.gamesPlayed.toLocaleString();
-
-    const currentLevel = getLevel();
-    const currentLevelXP = profile.totalXP % 100;
-
-    $("#levelBadge").textContent = String(currentLevel).padStart(2, "0");
-    $("#levelName").textContent = getLevelName(currentLevel);
-    $("#xpProgressText").textContent = `${currentLevelXP} / 100 XP`;
-    $("#xpProgressFill").style.width = `${currentLevelXP}%`;
-
-    $("#bestComboValue").textContent = profile.bestCombo;
-    renderAchievements();
-    renderHistory();
-  }
-
-  function renderAchievements() {
-    const host = $("#achievementList");
-    host.replaceChildren();
-
-    ACHIEVEMENTS.forEach((achievement, index) => {
-      const unlocked = profile.unlocked.includes(achievement.id);
-      const row = document.createElement("div");
-      row.className = `achievement-item${unlocked ? " unlocked" : ""}`;
-
-      const icon = document.createElement("span");
-      icon.className = "achievement-icon";
-      icon.textContent = String(index + 1).padStart(2, "0");
-
-      const copy = document.createElement("span");
-      const title = document.createElement("strong");
-      const description = document.createElement("small");
-      title.textContent = achievement.title;
-      description.textContent = achievement.description;
-      copy.append(title, description);
-
-      const status = document.createElement("span");
-      status.className = "achievement-lock";
-      status.textContent = unlocked ? "UNLOCKED" : "LOCKED";
-
-      row.append(icon, copy, status);
-      host.append(row);
-    });
-  }
-
-  function renderHistory() {
-    const host = $("#historyList");
-    host.replaceChildren();
-
-    if (!profile.history.length) {
-      const empty = document.createElement("p");
-      empty.className = "empty-state";
-      empty.textContent = "Your battle history will appear here.";
-      host.append(empty);
-      return;
-    }
-
-    profile.history.slice(0, 5).forEach((entry) => {
-      const row = document.createElement("div");
-      row.className = "history-item";
-
-      const details = document.createElement("span");
-      const name = document.createElement("strong");
-      const date = document.createElement("small");
-
-      name.textContent = entry.mode;
-      date.textContent = `${entry.destroyed} targets · ${entry.accuracy}% accuracy`;
-      details.append(name, date);
-
-      const points = document.createElement("span");
-      points.className = "history-score";
-      points.textContent = Number(entry.score).toLocaleString();
-
-      row.append(details, points);
-      host.append(row);
-    });
-  }
-
-  function checkAchievements() {
-    ACHIEVEMENTS.forEach((achievement) => {
-      if (
-        !profile.unlocked.includes(achievement.id) &&
-        achievement.check(profile)
-      ) {
-        profile.unlocked.push(achievement.id);
-        showToast(`ACHIEVEMENT UNLOCKED: ${achievement.title}`);
-        playSound("power");
-      }
-    });
-
-    saveProfile();
-    renderAchievements();
-  }
-
-  function showToast(message) {
-    let toast = $("#typexToast");
-
-    if (!toast) {
-      toast = document.createElement("div");
-      toast.id = "typexToast";
-      toast.style.cssText = [
-        "position:fixed",
-        "z-index:100",
-        "left:50%",
-        "bottom:22px",
-        "transform:translateX(-50%)",
-        "max-width:90vw",
-        "padding:12px 16px",
-        "border:1px solid var(--accent)",
-        "border-radius:10px",
-        "background:var(--panel)",
-        "color:var(--text)",
-        "font:800 11px system-ui",
-        "text-align:center",
-        "box-shadow:0 8px 30px rgba(0,0,0,.35)"
-      ].join(";");
-
-      document.body.append(toast);
-    }
-
-    toast.textContent = message;
-    toast.style.display = "block";
-
-    clearTimeout(showToast.timer);
-    showToast.timer = setTimeout(() => {
-      toast.style.display = "none";
-    }, 2200);
-  }
+  /* ==========================================
+     CANVAS SETUP
+     ========================================== */
 
   function resizeCanvas() {
-    const rect = canvas.getBoundingClientRect();
+    const rect = arena.getBoundingClientRect();
 
-    if (!rect.width || !rect.height) return;
+    canvasWidth = Math.max(1, rect.width);
+    canvasHeight = Math.max(1, rect.height);
+    pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
 
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvasWidth = rect.width;
-    canvasHeight = rect.height;
+    canvas.width = Math.round(canvasWidth * pixelRatio);
+    canvas.height = Math.round(canvasHeight * pixelRatio);
 
-    canvas.width = Math.round(canvasWidth * dpr);
-    canvas.height = Math.round(canvasHeight * dpr);
+    ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    drawFrame();
+    drawScene(performance.now());
   }
 
-  function currentTheme() {
-    return THEMES[profile.theme] || THEMES.cyber;
+  if ("ResizeObserver" in window) {
+    resizeObserver = new ResizeObserver(resizeCanvas);
+    resizeObserver.observe(arena);
+  } else {
+    window.addEventListener("resize", resizeCanvas);
   }
+
+  /* ==========================================
+     AUDIO
+     ========================================== */
 
   function playSound(type) {
-    if (!profile.sound) return;
-
     try {
       const AudioContextClass =
         window.AudioContext || window.webkitAudioContext;
 
       if (!AudioContextClass) return;
 
-      if (!soundContext) soundContext = new AudioContextClass();
-
-      if (soundContext.state === "suspended") {
-        soundContext.resume().catch(() => {});
+      if (!state.audioContext) {
+        state.audioContext = new AudioContextClass();
       }
 
-      const oscillator = soundContext.createOscillator();
-      const gain = soundContext.createGain();
-      const now = soundContext.currentTime;
+      const audio = state.audioContext;
 
-      const tones = {
-        pop: [560, 0.07],
-        miss: [145, 0.15],
-        power: [820, 0.13],
-        start: [420, 0.1],
-        boss: [240, 0.2]
+      if (audio.state === "suspended") {
+        audio.resume();
+      }
+
+      const oscillator = audio.createOscillator();
+      const gain = audio.createGain();
+
+      const sounds = {
+        hit: [660, 0.075, "sine"],
+        miss: [170, 0.13, "triangle"],
+        pop: [520, 0.08, "sine"],
+        boom: [90, 0.28, "sawtooth"],
+        level: [880, 0.12, "sine"],
+        success: [740, 0.16, "triangle"]
       };
 
-      const [frequency, duration] = tones[type] || tones.pop;
+      const sound = sounds[type] || sounds.hit;
 
-      oscillator.type = type === "miss" ? "sawtooth" : "sine";
-      oscillator.frequency.setValueAtTime(frequency, now);
+      oscillator.type = sound[2];
+      oscillator.frequency.setValueAtTime(
+        sound[0],
+        audio.currentTime
+      );
 
-      if (type === "pop" || type === "power") {
+      if (type === "boom") {
         oscillator.frequency.exponentialRampToValueAtTime(
-          frequency * 1.6,
-          now + duration
+          35,
+          audio.currentTime + sound[1]
         );
       }
 
-      gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.exponentialRampToValueAtTime(0.08, now + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+      gain.gain.setValueAtTime(0.0001, audio.currentTime);
+      gain.gain.exponentialRampToValueAtTime(
+        0.08,
+        audio.currentTime + 0.012
+      );
+      gain.gain.exponentialRampToValueAtTime(
+        0.0001,
+        audio.currentTime + sound[1]
+      );
 
       oscillator.connect(gain);
-      gain.connect(soundContext.destination);
+      gain.connect(audio.destination);
 
-      oscillator.start(now);
-      oscillator.stop(now + duration + 0.02);
-    } catch (error) {
-      // Audio is optional; the game continues without it.
+      oscillator.start();
+      oscillator.stop(audio.currentTime + sound[1] + 0.02);
+    } catch (_) {
+      // Audio is optional; the game must still work without it.
     }
   }
 
-  function applyTheme(theme) {
-    profile.theme = THEMES[theme] ? theme : "cyber";
-    document.body.dataset.theme = profile.theme;
-    $("#themeSelect").value = profile.theme;
-    saveProfile();
-    drawFrame();
+  /* ==========================================
+     GENERAL UTILITIES
+     ========================================== */
+
+  function random(min, max) {
+    return Math.random() * (max - min) + min;
   }
 
-  function selectMode(mode) {
-    if (!MODES[mode]) return;
-
-    if (running) {
-      showToast("Finish or restart the current game to switch modes.");
-      return;
-    }
-
-    selectedMode = mode;
-
-    $$(".mode-card").forEach((button) => {
-      button.classList.toggle("active", button.dataset.mode === mode);
-    });
-
-    $("#modeTitle").textContent = MODES[mode].title;
-    $("#overlayTitle").textContent = "Enter the arena.";
-    $("#overlayDescription").textContent = MODES[mode].description;
-    $("#typingHint").textContent = MODES[mode].hint;
-
-    $("#bossPanel").classList.toggle("hidden", mode !== "boss");
-
-    if (mode === "boss") {
-      $("#bossHealthFill").style.width = "100%";
-      $("#bossHealthText").textContent = "100%";
-    }
-
-    overlay.classList.remove("hidden");
-    resultPanel.classList.add("hidden");
-    $("#gameStatus").textContent = "SYSTEM READY";
-
-    resetGameState();
-    drawFrame();
+  function randomInt(min, max) {
+    return Math.floor(random(min, max + 1));
   }
 
-  function resetGameState() {
-    cancelAnimationFrame(animationId);
-
-    running = false;
-    animationId = 0;
-    lastFrame = 0;
-    spawnClock = 0;
-    elapsed = 0;
-    remaining = Number($("#durationSelect").value) || 60;
-    score = 0;
-    combo = 0;
-    bestComboThisGame = 0;
-    destroyed = 0;
-    mistakes = 0;
-    attempts = 0;
-    lives = MODES[selectedMode].lives;
-    level = 1;
-    bossHealth = 100;
-    totalTargets = 0;
-    wordBuffer = "";
-    activePower = null;
-    powerTime = 0;
-    shieldCharges = 0;
-    doubleXP = false;
-    gameObjects = [];
-    particles = [];
-    memoryTarget = null;
-    memoryClock = 0;
-    lastSpawn = 0;
-    hitFlash = 0;
-    currentXP = 0;
-    pointerTarget = null;
-
-    input.value = "";
-    input.disabled = true;
-    submitButton.disabled = true;
-    input.placeholder = "Start the game to activate input...";
-
-    $$(".powerup-button").forEach((button) => {
-      button.disabled = true;
-    });
-
-    updateGameUI();
-  }
-
-  function startGame() {
-    if (running) return;
-
-    resetGameState();
-
-    running = true;
-    remaining = Number($("#durationSelect").value) || 60;
-    lives = MODES[selectedMode].lives;
-    lastFrame = performance.now();
-
-    overlay.classList.add("hidden");
-    resultPanel.classList.add("hidden");
-
-    input.disabled = false;
-    submitButton.disabled = false;
-    input.placeholder = MODES[selectedMode].words
-      ? "Type a complete word..."
-      : "Type the matching letter...";
-
-    $("#gameStatus").textContent = "MISSION ACTIVE";
-    $("#inputStatus").textContent = "ONLINE";
-
-    $$(".powerup-button").forEach((button) => {
-      button.disabled = false;
-    });
-
-    playSound("start");
-    updateGameUI();
-    spawnTarget();
-    animationId = requestAnimationFrame(gameLoop);
-
-    setTimeout(() => {
-      if (running) {
-        input.focus({ preventScroll: true });
-      }
-    }, 60);
-  }
-
-  function gameLoop(timestamp) {
-    if (!running) return;
-
-    const dt = Math.min((timestamp - lastFrame) / 1000, 0.05);
-    lastFrame = timestamp;
-
-    elapsed += dt;
-    remaining = Math.max(0, remaining - dt);
-
-    const nextLevel = 1 + Math.floor(score / 250);
-    if (nextLevel > level) {
-      level = nextLevel;
-      showToast(`LEVEL ${level} — DIFFICULTY INCREASED`);
-      playSound("power");
-    }
-
-    if (activePower && activePower !== "shield") {
-      powerTime -= dt;
-
-      if (powerTime <= 0) {
-        if (activePower === "double") doubleXP = false;
-        activePower = null;
-      }
-    }
-
-    if (hitFlash > 0) hitFlash -= dt;
-
-    if (selectedMode === "memory" && memoryTarget) {
-      memoryClock -= dt;
-
-      if (memoryClock <= 0 && !memoryTarget.hidden) {
-        memoryTarget.hidden = true;
-        memoryTarget.hiddenTime = 1.2;
-      } else if (memoryTarget.hidden) {
-        memoryTarget.hiddenTime -= dt;
-
-        if (memoryTarget.hiddenTime <= 0) {
-          removeTarget(memoryTarget, false);
-          memoryTarget = null;
-          loseLife();
-        }
-      }
-    }
-
-    spawnClock += dt;
-    const mode = MODES[selectedMode];
-    const spawnInterval = Math.max(
-      0.35,
-      mode.spawn / (1 + (level - 1) * 0.09)
-    );
-
-    if (spawnClock >= spawnInterval) {
-      spawnClock = 0;
-
-      if (selectedMode !== "memory" || !memoryTarget) {
-        spawnTarget();
-      }
-    }
-
-    updateObjects(dt);
-    updateParticles(dt);
-    updateGameUI();
-    drawFrame();
-
-    if (remaining <= 0) {
-      endGame("TIME EXPIRED");
-      return;
-    }
-
-    if (lives <= 0) {
-      endGame("GAME OVER");
-      return;
-    }
-
-    animationId = requestAnimationFrame(gameLoop);
-  }
-
-  function randomLetter() {
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    return letters[Math.floor(Math.random() * letters.length)];
+  function choose(array) {
+    return array[Math.floor(Math.random() * array.length)];
   }
 
   function randomWord() {
-    return WORDS[Math.floor(Math.random() * WORDS.length)];
+    return choose(WORDS);
   }
 
-  function spawnTarget() {
-    if (!canvasWidth || !canvasHeight) resizeCanvas();
+  function randomCode(length = 5) {
+    let result = "";
 
-    const isWordMode = MODES[selectedMode].words;
-    let label;
-
-    if (selectedMode === "memory") {
-      label = randomLetter();
-    } else if (selectedMode === "bomb") {
-      label = Math.random() < 0.55 ? randomWord() : randomLetter();
-    } else if (isWordMode) {
-      label = randomWord();
-    } else {
-      label = randomLetter();
+    for (let i = 0; i < length; i++) {
+      result += MEMORY_CHARS[
+        Math.floor(Math.random() * MEMORY_CHARS.length)
+      ];
     }
 
-    const isBossAttack = selectedMode === "boss";
-    const isBomb = selectedMode === "bomb" &&
-      Math.random() < 0.6;
-
-    if (isBomb && label.length === 1) {
-      label = randomWord();
-    }
-
-    const width = Math.max(50, canvasWidth);
-    const targetRadius = label.length > 4 ? 34 : 25;
-
-    const object = {
-      id: ++totalTargets,
-      label,
-      x: 35 + Math.random() * Math.max(1, width - 70),
-      y: -targetRadius - 12,
-      radius: targetRadius,
-      speed: (isWordMode ? 48 : 58) + Math.random() * 26 + level * 3,
-      phase: Math.random() * Math.PI * 2,
-      age: 0,
-      isBomb,
-      isBossAttack,
-      hidden: false,
-      hiddenTime: 0,
-      color: isBomb ? "#ff617f" : currentTheme().accent
-    };
-
-    gameObjects.push(object);
-
-    if (selectedMode === "memory") {
-      memoryTarget = object;
-      memoryClock = 0.8 + Math.random() * 0.5;
-    }
+    return result;
   }
 
-  function updateObjects(dt) {
-    const speedMultiplier =
-      activePower === "slow" ? 0.4 :
-      activePower === "freeze" ? 0 : 1;
+  function formatTime(seconds) {
+    seconds = Math.max(0, Math.floor(seconds));
 
-    for (let i = gameObjects.length - 1; i >= 0; i--) {
-      const object = gameObjects[i];
+    const minutes = Math.floor(seconds / 60);
+    const remaining = seconds % 60;
 
-      object.age += dt;
-      object.y += object.speed * speedMultiplier * dt;
-      object.x += Math.sin(object.age * 1.7 + object.phase) * 8 * dt;
-
-      if (object.y - object.radius > canvasHeight) {
-        removeTarget(object, false);
-        loseLife();
-      }
-    }
+    return (
+      String(minutes).padStart(2, "0") +
+      ":" +
+      String(remaining).padStart(2, "0")
+    );
   }
 
-  function removeTarget(object, successful) {
-    const index = gameObjects.indexOf(object);
-
-    if (index !== -1) {
-      gameObjects.splice(index, 1);
-    }
-
-    if (memoryTarget === object) {
-      memoryTarget = null;
-    }
-
-    if (successful) {
-      createBurst(object.x, object.y, object.color);
-    }
+  function normalize(value) {
+    return value.trim().toUpperCase();
   }
 
-  function createBurst(x, y, color) {
-    for (let i = 0; i < 12; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 35 + Math.random() * 125;
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
 
-      particles.push({
+  function showMessage(text) {
+    $("#typing-instruction").textContent = text;
+  }
+
+  function getAccuracy() {
+    const total = state.hits + state.misses;
+
+    if (total === 0) return 100;
+
+    return Math.round((state.hits / total) * 100);
+  }
+
+  function getWPM() {
+    const minutes = state.elapsed / 60;
+
+    if (minutes <= 0) return 0;
+
+    return Math.round((state.correctCharacters / 5) / minutes);
+  }
+
+  function getLevel() {
+    return Math.max(1, 1 + Math.floor(state.score / 500));
+  }
+
+  function addScore(points) {
+    state.score += points;
+    state.lastScore = points;
+    $("#score-change").textContent = "+" + points;
+    updateStats();
+  }
+
+  function registerHit(points = 100) {
+    state.hits++;
+    state.combo++;
+
+    state.bestCombo = Math.max(
+      state.bestCombo,
+      state.combo
+    );
+
+    const comboBonus = Math.min(state.combo - 1, 10) * 5;
+
+    addScore(points + comboBonus);
+
+    playSound("hit");
+
+    updateStats();
+  }
+
+  function registerMiss(message = "Missed! Stay focused.") {
+    state.misses++;
+    state.combo = 0;
+
+    playSound("miss");
+
+    showMessage(message);
+    updateStats();
+  }
+
+  function loseLife(message) {
+    state.lives = Math.max(0, state.lives - 1);
+    state.combo = 0;
+
+    updateStats();
+
+    if (state.lives <= 0) {
+      endGame("GAME OVER", message || "All lives lost.");
+      return true;
+    }
+
+    showMessage(message || "Careful! One life lost.");
+    playSound("miss");
+
+    return false;
+  }
+
+  function addFloatingText(x, y, text, color = "#62f5bd") {
+    state.floatingTexts.push({
+      x,
+      y,
+      text,
+      color,
+      life: 1
+    });
+  }
+
+  function addParticles(x, y, color, count = 12) {
+    for (let i = 0; i < count; i++) {
+      const angle = random(0, Math.PI * 2);
+      const speed = random(35, 150);
+
+      state.particles.push({
         x,
         y,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
-        life: 0.35 + Math.random() * 0.35,
+        life: random(0.25, 0.7),
         maxLife: 0.7,
-        color,
-        size: 2 + Math.random() * 3
+        size: random(1.5, 4),
+        color
       });
     }
   }
 
-  function updateParticles(dt) {
-    for (let i = particles.length - 1; i >= 0; i--) {
-      const particle = particles[i];
+  /* ==========================================
+     HUD
+     ========================================== */
 
-      particle.x += particle.vx * dt;
-      particle.y += particle.vy * dt;
-      particle.vy += 40 * dt;
-      particle.life -= dt;
+  function updateStats() {
+    $("#score-value").textContent =
+      String(state.score).padStart(6, "0");
 
-      if (particle.life <= 0) particles.splice(i, 1);
-    }
+    $("#accuracy-value").textContent = getAccuracy();
+
+    $("#accuracy-bar").style.width =
+      getAccuracy() + "%";
+
+    $("#wpm-value").textContent = getWPM();
+
+    $("#combo-value").textContent = "x" + state.combo;
+
+    $("#combo-bar").style.width =
+      Math.min(100, state.combo * 10) + "%";
+
+    $("#best-combo").textContent =
+      "BEST " + state.bestCombo;
+
+    $("#lives-value").textContent =
+      state.lives + " / 3";
+
+    $("#hits-value").textContent = state.hits;
+    $("#misses-value").textContent = state.misses;
+
+    $("#mission-mode").textContent =
+      MODES[state.mode].title.toUpperCase();
+
+    $("#arena-level").textContent =
+      "LEVEL " + String(state.level).padStart(2, "0");
   }
 
-  function loseLife() {
-    if (!running) return;
+  function setGameStatus(text, active = false) {
+    const element = $("#game-status");
 
-    if (shieldCharges > 0) {
-      shieldCharges--;
-      showToast("SHIELD BLOCKED A MISS");
+    element.innerHTML = "";
+
+    const dot = document.createElement("span");
+    dot.className = "status-dot";
+
+    if (!active) {
+      dot.style.background = "#8994ac";
+      dot.style.boxShadow = "none";
+    }
+
+    element.append(dot, document.createTextNode(text));
+  }
+
+  function updateClock() {
+    $("#arena-time").textContent =
+      formatTime(state.elapsed);
+  }
+
+  /* ==========================================
+     MODE SELECTION
+     ========================================== */
+
+  function selectMode(mode) {
+    if (!MODES[mode]) return;
+
+    if (state.running) {
+      stopGame(false);
+    }
+
+    state.mode = mode;
+
+    modeCards.forEach((card) => {
+      card.classList.toggle(
+        "selected",
+        card.dataset.mode === mode
+      );
+    });
+
+    const config = MODES[mode];
+
+    $("#active-mode-title").textContent = config.title;
+    $("#arena-mode-label").textContent = config.label;
+    $("#overlay-title").textContent = config.overlayTitle;
+    $("#overlay-description").textContent =
+      config.overlayDescription;
+
+    $("#typing-label-text").textContent = config.inputLabel;
+
+    typingInput.placeholder = config.placeholder;
+
+    showMessage(config.instruction);
+
+    startOverlay.classList.remove("hidden");
+    resultOverlay.classList.add("hidden");
+
+    typingInput.value = "";
+    typingInput.disabled = true;
+    submitButton.disabled = true;
+
+    setGameStatus("READY", false);
+
+    resetGameState();
+    updateStats();
+
+    drawScene(performance.now());
+  }
+
+  modeCards.forEach((card) => {
+    card.addEventListener("click", () => {
+      selectMode(card.dataset.mode);
+    });
+  });
+
+  /* ==========================================
+     RESET / START / STOP
+     ========================================== */
+
+  function resetGameState() {
+    state.running = false;
+    state.paused = false;
+    state.ended = false;
+
+    state.score = 0;
+    state.hits = 0;
+    state.misses = 0;
+    state.typedCharacters = 0;
+    state.correctCharacters = 0;
+
+    state.combo = 0;
+    state.bestCombo = 0;
+    state.lives = 3;
+
+    state.targets = [];
+    state.particles = [];
+    state.floatingTexts = [];
+
+    state.startedAt = 0;
+    state.elapsed = 0;
+    state.lastFrame = 0;
+    state.lastSpawn = 0;
+
+    state.level = 1;
+    state.targetId = 0;
+
+    state.bossHealth = 100;
+    state.bossMaxHealth = 100;
+    state.bossAttackWord = "";
+
+    state.bombCode = "";
+    state.bombDeadline = 0;
+    state.bombsDefused = 0;
+
+    state.memorySequence = "";
+    state.memoryPhase = "show";
+    state.memoryDeadline = 0;
+    state.memoryRound = 0;
+
+    state.survivalDistance = 0;
+    state.nextEnemyId = 0;
+
+    state.lastScore = 0;
+
+    typingInput.value = "";
+
+    updateStats();
+    updateClock();
+  }
+
+  function startGame() {
+    if (state.running && state.paused) {
+      resumeGame();
       return;
     }
 
-    lives = Math.max(0, lives - 1);
-    combo = 0;
-    mistakes++;
-    hitFlash = 0.25;
+    if (state.running) return;
 
-    playSound("miss");
-    updateGameUI();
+    if (state.ended) {
+      resetGameState();
+    }
+
+    resetGameState();
+
+    state.running = true;
+    state.paused = false;
+    state.ended = false;
+
+    state.startedAt = performance.now();
+    state.lastFrame = performance.now();
+    state.lastSpawn = performance.now();
+
+    startOverlay.classList.add("hidden");
+    resultOverlay.classList.add("hidden");
+
+    typingInput.disabled = false;
+    submitButton.disabled = false;
+
+    typingInput.value = "";
+
+    setGameStatus("LIVE", true);
+
+    prepareMode();
+
+    updateStats();
+
+    cancelAnimationFrame(animationId);
+    animationId = requestAnimationFrame(gameLoop);
+
+    typingInput.focus({ preventScroll: true });
   }
 
-  function findTargetByLetter(letter) {
-    const upper = letter.toUpperCase();
+  function stopGame(showReady = true) {
+    state.running = false;
+    state.paused = false;
 
-    const candidates = gameObjects
-      .filter((object) => !object.hidden && object.label === upper)
-      .sort((a, b) => b.y - a.y);
+    cancelAnimationFrame(animationId);
 
-    return candidates[0] || null;
+    typingInput.disabled = true;
+    submitButton.disabled = true;
+
+    if (showReady) {
+      setGameStatus("READY", false);
+    }
   }
 
-  function registerHit(object) {
-    if (!running || !object) return;
+  function pauseGame() {
+    if (!state.running || state.paused) return;
 
-    removeTarget(object, true);
-    attempts++;
-    destroyed++;
-    combo++;
+    state.paused = true;
 
-    bestComboThisGame = Math.max(bestComboThisGame, combo);
-    profile.bestCombo = Math.max(profile.bestCombo, combo);
+    setGameStatus("PAUSED", false);
+    showMessage("Game paused. Press Escape to resume.");
 
-    const points = (object.isBomb ? 25 : 10) +
-      Math.min(combo, 30) * 2;
+    drawScene(performance.now());
+  }
 
-    score += points;
+  function resumeGame() {
+    if (!state.running || !state.paused) return;
 
-    if (selectedMode === "boss") {
-      bossHealth = Math.max(0, bossHealth - 10);
-      $("#bossHealthFill").style.width = `${bossHealth}%`;
-      $("#bossHealthText").textContent = `${bossHealth}%`;
+    state.paused = false;
+    state.lastFrame = performance.now();
 
-      arena.classList.remove("boss-hit");
-      void arena.offsetWidth;
-      arena.classList.add("boss-hit");
+    setGameStatus("LIVE", true);
 
-      playSound("boss");
+    typingInput.focus({ preventScroll: true });
 
-      if (bossHealth <= 0) {
-        profile.bossWins++;
-        showToast("BOSS DEFEATED!");
-        createBurst(canvasWidth / 2, 155, "#ff617f");
-        bossHealth = 100;
-        $("#bossHealthFill").style.width = "100%";
-        $("#bossHealthText").textContent = "100%";
-        score += 200;
+    animationId = requestAnimationFrame(gameLoop);
+  }
+
+  function endGame(title = "GAME OVER", description = "") {
+    if (state.ended) return;
+
+    state.running = false;
+    state.paused = false;
+    state.ended = true;
+
+    cancelAnimationFrame(animationId);
+
+    typingInput.disabled = true;
+    submitButton.disabled = true;
+
+    setGameStatus("MISSION ENDED", false);
+
+    $("#result-title").textContent = title;
+    $("#result-description").textContent =
+      description || "Simulation complete.";
+
+    $("#result-score").textContent =
+      state.score.toLocaleString();
+
+    $("#result-accuracy").textContent =
+      getAccuracy() + "%";
+
+    $("#result-wpm").textContent = getWPM();
+
+    $("#result-kicker").textContent =
+      state.lives > 0 ? "SIMULATION COMPLETE" : "MISSION FAILED";
+
+    $("#result-symbol").textContent =
+      state.lives > 0 ? "✓" : "!";
+
+    resultOverlay.classList.remove("hidden");
+    startOverlay.classList.add("hidden");
+
+    updateStats();
+    drawScene(performance.now());
+  }
+
+  startButton.addEventListener("click", startGame);
+  restartButton.addEventListener("click", startGame);
+
+  /* ==========================================
+     PREPARE INDIVIDUAL GAME MODES
+     ========================================== */
+
+  function prepareMode() {
+    const now = performance.now();
+
+    if (state.mode === "bubble") {
+      for (let i = 0; i < 5; i++) {
+        spawnBubble(true);
       }
-    } else {
-      playSound("pop");
+
+      showMessage("Type a bubble's letter to pop it.");
     }
 
-    if (doubleXP) score += 5;
+    if (state.mode === "wordrain") {
+      spawnWord(true);
+      spawnWord(true);
 
-    currentXP += doubleXP ? 2 : 1;
-
-    if (selectedMode === "bomb" && object.isBomb) {
-      score += 15;
+      showMessage("Type the complete falling word.");
     }
 
-    if (selectedMode === "memory") {
-      memoryTarget = null;
+    if (state.mode === "survival") {
+      state.survivalDistance = 0;
+
+      spawnEnemy(true);
+      spawnEnemy(true);
+
+      showMessage("Destroy enemies before they breach the base.");
     }
 
-    checkAchievements();
-    updateGameUI();
+    if (state.mode === "boss") {
+      state.bossHealth = 100;
+      state.bossMaxHealth = 100;
+
+      state.bossAttackWord = randomWord();
+
+      state.targets = [];
+
+      showMessage("Type the attack word to damage the boss.");
+    }
+
+    if (state.mode === "bomb") {
+      state.bombsDefused = 0;
+      spawnBomb(true, now);
+
+      showMessage("Type the exact code before time runs out.");
+    }
+
+    if (state.mode === "memory") {
+      state.memoryRound = 0;
+      beginMemoryRound(now);
+    }
   }
 
-  function processBubbleInput(value) {
-    if (!running || !value) return;
+  /* ==========================================
+     TARGET SPAWNING
+     ========================================== */
 
-    const characters = [...value.toUpperCase()];
+  function spawnBubble(initial = false) {
+    const radius = random(17, 24);
+    const x = random(radius + 12, Math.max(radius + 13, canvasWidth - radius - 12));
 
-    for (const character of characters) {
-      if (!/[A-Z]/.test(character)) continue;
-
-      attempts++;
-      const target = findTargetByLetter(character);
-
-      if (target) {
-        registerHit(target);
-      } else {
-        mistakes++;
-        combo = 0;
-        playSound("miss");
-      }
-    }
-
-    updateGameUI();
+    state.targets.push({
+      id: ++state.targetId,
+      type: "bubble",
+      letter: String.fromCharCode(randomInt(65, 90)),
+      x,
+      y: initial ? random(75, canvasHeight * 0.65) : -radius - 10,
+      radius,
+      speed: random(30, 55) + state.level * 3,
+      phase: random(0, Math.PI * 2),
+      color: choose(["#a879ff", "#59e5ff", "#62f5bd"]),
+      dead: false
+    });
   }
 
-  function processWordInput() {
-    if (!running) return;
+  function spawnWord(initial = false) {
+    const word = randomWord();
 
-    const value = input.value.trim().toLowerCase();
+    state.targets.push({
+      id: ++state.targetId,
+      type: "word",
+      word,
+      x: random(75, Math.max(76, canvasWidth - 75)),
+      y: initial ? random(85, canvasHeight * 0.45) : -35,
+      speed: random(24, 42) + state.level * 3,
+      width: Math.max(65, word.length * 10 + 24),
+      height: 30,
+      dead: false
+    });
+  }
+
+  function spawnEnemy(initial = false) {
+    const lane = randomInt(0, 2);
+    const x = canvasWidth * LANES[lane];
+
+    state.targets.push({
+      id: ++state.targetId,
+      type: "enemy",
+      code: randomCode(4),
+      lane,
+      x,
+      y: initial ? random(90, canvasHeight * 0.42) : 70,
+      speed: random(18, 28) + state.level * 2,
+      size: 27,
+      dead: false
+    });
+  }
+
+  function spawnBomb(initial = false, now = performance.now()) {
+    state.targets = state.targets.filter(
+      (target) => target.type !== "bomb"
+    );
+
+    const codeLength = Math.min(
+      9,
+      4 + state.bombsDefused + Math.floor(state.level / 2)
+    );
+
+    const duration = Math.max(5, 11 - state.bombsDefused * 0.4);
+
+    state.bombCode = randomCode(codeLength);
+    state.bombDeadline = now + duration * 1000;
+
+    state.targets.push({
+      id: ++state.targetId,
+      type: "bomb",
+      code: state.bombCode,
+      x: canvasWidth / 2,
+      y: canvasHeight * 0.49,
+      radius: 48,
+      deadline: state.bombDeadline,
+      duration,
+      dead: false
+    });
+  }
+
+  /* ==========================================
+     MEMORY MODE
+     ========================================== */
+
+  function beginMemoryRound(now = performance.now()) {
+    state.memoryRound++;
+
+    const length = Math.min(12, 3 + state.memoryRound);
+
+    state.memorySequence = randomCode(length);
+    state.memoryPhase = "show";
+
+    state.memoryDeadline = now + Math.max(
+      1300,
+      3200 - state.memoryRound * 150
+    );
+
+    state.targets = [];
+
+    typingInput.value = "";
+    typingInput.disabled = true;
+    submitButton.disabled = true;
+
+    showMessage(
+      "Memorize the sequence. It will disappear shortly."
+    );
+
+    updateStats();
+  }
+
+  function switchMemoryToInput(now) {
+    state.memoryPhase = "input";
+    state.memoryDeadline = now + 15000;
+
+    typingInput.value = "";
+    typingInput.disabled = false;
+    submitButton.disabled = false;
+
+    showMessage(
+      "Sequence hidden! Type the complete sequence and press Enter."
+    );
+
+    typingInput.focus({ preventScroll: true });
+  }
+
+  /* ==========================================
+     INPUT HANDLING
+     ========================================== */
+
+  typingForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    if (!state.running || state.paused || state.ended) {
+      return;
+    }
+
+    const value = typingInput.value.trim();
+
     if (!value) return;
 
-    const target = gameObjects.find((object) =>
-      !object.hidden && object.label.toLowerCase() === value
+    submitTypedValue(value);
+  });
+
+  function submitTypedValue(rawValue) {
+    const value = normalize(rawValue);
+
+    if (!value) return;
+
+    state.typedCharacters += rawValue.length;
+
+    if (state.mode === "bubble") {
+      const target = state.targets.find(
+        (item) =>
+          item.type === "bubble" &&
+          !item.dead &&
+          item.letter === value
+      );
+
+      if (target && value.length === 1) {
+        destroyTarget(target, 80, "POP!");
+      } else {
+        registerMiss("No matching bubble. Try again.");
+      }
+
+      typingInput.value = "";
+      return;
+    }
+
+    if (state.mode === "wordrain") {
+      const target = state.targets.find(
+        (item) =>
+          item.type === "word" &&
+          !item.dead &&
+          item.word.toUpperCase() === value
+      );
+
+      if (target) {
+        destroyTarget(target, 100 + target.word.length * 8, "WORD!");
+      } else {
+        registerMiss("That word is not falling right now.");
+      }
+
+      typingInput.value = "";
+      return;
+    }
+
+    if (state.mode === "survival") {
+      const target = state.targets.find(
+        (item) =>
+          item.type === "enemy" &&
+          !item.dead &&
+          item.code === value
+      );
+
+      if (target) {
+        destroyTarget(target, 140, "DESTROYED!");
+      } else {
+        registerMiss("Enemy code not found.");
+      }
+
+      typingInput.value = "";
+      return;
+    }
+
+    if (state.mode === "boss") {
+      if (value === state.bossAttackWord.toUpperCase()) {
+        const damage = 18 + Math.min(state.combo, 10) * 2;
+
+        state.bossHealth = Math.max(
+          0,
+          state.bossHealth - damage
+        );
+
+        state.correctCharacters += rawValue.length;
+
+        registerHit(100 + damage * 3);
+
+        addFloatingText(
+          canvasWidth / 2,
+          canvasHeight * 0.3,
+          "-" + damage + " HP",
+          "#ff637e"
+        );
+
+        addParticles(
+          canvasWidth / 2,
+          canvasHeight * 0.36,
+          "#ff637e",
+          22
+        );
+
+        if (state.bossHealth <= 0) {
+          addScore(500);
+          endGame("BOSS DEFEATED!", "You defeated the boss. Incredible typing!");
+          playSound("success");
+          typingInput.value = "";
+          return;
+        }
+
+        state.bossAttackWord = randomWord();
+
+        showMessage("Direct hit! Type the next attack word.");
+      } else {
+        registerMiss("Wrong attack word. Try again.");
+      }
+
+      typingInput.value = "";
+      return;
+    }
+
+    if (state.mode === "bomb") {
+      const target = state.targets.find(
+        (item) => item.type === "bomb" && !item.dead
+      );
+
+      if (target && value === target.code) {
+        target.dead = true;
+
+        state.bombsDefused++;
+
+        state.correctCharacters += rawValue.length;
+
+        registerHit(200 + state.bombsDefused * 25);
+
+        addParticles(
+          target.x,
+          target.y,
+          "#62f5bd",
+          30
+        );
+
+        addFloatingText(
+          target.x,
+          target.y - 45,
+          "DEFUSED!",
+          "#62f5bd"
+        );
+
+        playSound("success");
+
+        state.level = getLevel();
+
+        if (state.bombsDefused >= 5) {
+          endGame(
+            "BOMB EXPERT!",
+            "You successfully defused five bombs. Mission accomplished."
+          );
+          typingInput.value = "";
+          return;
+        }
+
+        spawnBomb(false, performance.now());
+
+        showMessage("Bomb defused! Next code generated.");
+
+      } else {
+        registerMiss("Incorrect code. The countdown continues.");
+      }
+
+      typingInput.value = "";
+      return;
+    }
+
+    if (state.mode === "memory") {
+      if (state.memoryPhase !== "input") {
+        showMessage("Wait until the sequence disappears.");
+        typingInput.value = "";
+        return;
+      }
+
+      if (value === state.memorySequence) {
+        state.correctCharacters += rawValue.length;
+
+        registerHit(150 + state.memorySequence.length * 20);
+
+        addFloatingText(
+          canvasWidth / 2,
+          canvasHeight / 2,
+          "MEMORY PERFECT!",
+          "#59e5ff"
+        );
+
+        playSound("level");
+
+        if (state.memoryRound >= 8) {
+          endGame(
+            "MEMORY MASTER!",
+            "You completed all eight memory rounds."
+          );
+          typingInput.value = "";
+          return;
+        }
+
+        state.level = getLevel();
+
+        beginMemoryRound(performance.now());
+
+      } else {
+        registerMiss("Sequence incorrect. Try the next sequence.");
+
+        if (loseLife("Wrong sequence! One life lost.")) {
+          typingInput.value = "";
+          return;
+        }
+
+        beginMemoryRound(performance.now());
+      }
+
+      typingInput.value = "";
+    }
+  }
+
+  /* ==========================================
+     BUBBLE QUICK-KEY INPUT
+     ========================================== */
+
+  typingInput.addEventListener("input", () => {
+    if (
+      !state.running ||
+      state.paused ||
+      state.ended ||
+      state.mode !== "bubble"
+    ) {
+      return;
+    }
+
+    const value = typingInput.value.toUpperCase();
+
+    if (!value) return;
+
+    const letter = value[value.length - 1];
+
+    if (!/^[A-Z]$/.test(letter)) {
+      typingInput.value = "";
+      return;
+    }
+
+    state.typedCharacters++;
+
+    const target = state.targets.find(
+      (item) =>
+        item.type === "bubble" &&
+        !item.dead &&
+        item.letter === letter
     );
 
     if (target) {
-      registerHit(target);
-      input.value = "";
-      wordBuffer = "";
+      destroyTarget(target, 80, "POP!");
+    } else {
+      registerMiss("No bubble with that letter.");
     }
-  }
 
-  function handleFormSubmit(event) {
-    event.preventDefault();
+    typingInput.value = "";
+  });
 
-    if (!running) return;
+  /* ==========================================
+     KEYBOARD SHORTCUTS
+     ========================================== */
 
-    if (MODES[selectedMode].words) {
-      const value = input.value.trim().toLowerCase();
-
-      if (!value) return;
-
-      const target = gameObjects.find((object) =>
-        !object.hidden && object.label.toLowerCase() === value
-      );
-
-      if (target) {
-        registerHit(target);
-        input.value = "";
-        wordBuffer = "";
-      } else {
-        attempts++;
-        mistakes++;
-        combo = 0;
-        playSound("miss");
-        input.value = "";
-        updateGameUI();
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      if (state.running && !state.paused) {
+        event.preventDefault();
+        pauseGame();
+      } else if (state.running && state.paused) {
+        event.preventDefault();
+        resumeGame();
       }
 
-      input.focus({ preventScroll: true });
       return;
     }
 
-    processBubbleInput(input.value);
-    input.value = "";
-    input.focus({ preventScroll: true });
+    if (
+      event.key === "Enter" &&
+      !state.running &&
+      !state.ended &&
+      !event.repeat
+    ) {
+      event.preventDefault();
+      startGame();
+      return;
+    }
+
+    if (
+      event.key === "Enter" &&
+      state.ended &&
+      !event.repeat
+    ) {
+      event.preventDefault();
+      startGame();
+      return;
+    }
+
+    if (
+      event.key === "Tab" &&
+      state.running &&
+      !state.paused &&
+      !state.ended
+    ) {
+      event.preventDefault();
+
+      typingInput.focus({ preventScroll: true });
+    }
+  });
+
+  /* ==========================================
+     DESTROY TARGETS
+     ========================================== */
+
+  function destroyTarget(target, points, label) {
+    if (!target || target.dead) return;
+
+    target.dead = true;
+
+    const color =
+      target.type === "enemy" ? "#ff637e" :
+      target.type === "word" ? "#59e5ff" :
+      "#a879ff";
+
+    addParticles(target.x, target.y, color, 15);
+
+    addFloatingText(
+      target.x,
+      target.y - 20,
+      label,
+      color
+    );
+
+    state.correctCharacters +=
+      target.type === "bubble"
+        ? 1
+        : target.type === "word"
+          ? target.word.length
+          : target.type === "enemy"
+            ? target.code.length
+            : 0;
+
+    registerHit(points);
+
+    state.level = getLevel();
+
+    if (state.mode === "survival") {
+      state.survivalDistance += 1;
+    }
+
+    showMessage(
+      "Target destroyed! Keep the combo going."
+    );
   }
 
-  function usePower(name) {
-    if (!running) return;
+  /* ==========================================
+     GAME LOOP
+     ========================================== */
 
-    switch (name) {
-      case "slow":
-        activePower = "slow";
-        powerTime = 5;
-        showToast("SLOW-MO ACTIVATED");
-        break;
+  function gameLoop(now) {
+    if (!state.running || state.paused || state.ended) {
+      return;
+    }
 
-      case "bomb": {
-        const targets = [...gameObjects];
+    const delta = Math.min(
+      (now - state.lastFrame) / 1000,
+      0.05
+    );
 
-        targets.forEach((object) => {
-          removeTarget(object, true);
-          destroyed++;
-          score += 8;
-        });
+    state.lastFrame = now;
 
-        combo = 0;
-        showToast(`${targets.length} TARGETS CLEARED`);
-        playSound("power");
-        break;
+    state.elapsed = Math.max(
+      0,
+      (now - state.startedAt) / 1000
+    );
+
+    updateGame(delta, now);
+    updateParticles(delta);
+    updateFloatingTexts(delta);
+
+    updateClock();
+    updateStats();
+
+    drawScene(now);
+
+    if (state.running && !state.paused && !state.ended) {
+      animationId = requestAnimationFrame(gameLoop);
+    }
+  }
+
+  /* ==========================================
+     GAME UPDATES
+     ========================================== */
+
+  function updateGame(delta, now) {
+    if (state.mode === "bubble") {
+      updateBubbleMode(delta, now);
+    }
+
+    if (state.mode === "wordrain") {
+      updateWordRainMode(delta, now);
+    }
+
+    if (state.mode === "survival") {
+      updateSurvivalMode(delta, now);
+    }
+
+    if (state.mode === "boss") {
+      updateBossMode(delta, now);
+    }
+
+    if (state.mode === "bomb") {
+      updateBombMode(delta, now);
+    }
+
+    if (state.mode === "memory") {
+      updateMemoryMode(now);
+    }
+
+    if (state.ended) return;
+
+    state.targets = state.targets.filter(
+      (target) => !target.dead
+    );
+  }
+
+  /* ==========================================
+     MODE 1 — BUBBLE POP
+     ========================================== */
+
+  function updateBubbleMode(delta, now) {
+    const spawnDelay = Math.max(
+      500,
+      1200 - state.level * 65
+    );
+
+    if (now - state.lastSpawn > spawnDelay) {
+      spawnBubble();
+      state.lastSpawn = now;
+    }
+
+    for (const target of state.targets) {
+      if (target.type !== "bubble" || target.dead) continue;
+
+      target.y += target.speed * delta;
+      target.x += Math.sin(now / 700 + target.phase) * 9 * delta;
+
+      if (target.y - target.radius > canvasHeight) {
+        target.dead = true;
+
+        if (loseLife("A bubble escaped! One life lost.")) {
+          return;
+        }
+
+        registerMiss("A bubble escaped.");
+      }
+    }
+  }
+
+  /* ==========================================
+     MODE 2 — WORD RAIN
+     ========================================== */
+
+  function updateWordRainMode(delta, now) {
+    const spawnDelay = Math.max(
+      600,
+      1800 - state.level * 95
+    );
+
+    if (now - state.lastSpawn > spawnDelay) {
+      spawnWord();
+      state.lastSpawn = now;
+    }
+
+    for (const target of state.targets) {
+      if (target.type !== "word" || target.dead) continue;
+
+      target.y += target.speed * delta;
+
+      if (target.y > canvasHeight - 40) {
+        target.dead = true;
+
+        if (loseLife("A word escaped! One life lost.")) {
+          return;
+        }
+
+        registerMiss("A word escaped.");
+      }
+    }
+  }
+
+  /* ==========================================
+     MODE 3 — LAST STAND
+     ========================================== */
+
+  function updateSurvivalMode(delta, now) {
+    const spawnDelay = Math.max(
+      650,
+      1700 - state.level * 100
+    );
+
+    if (now - state.lastSpawn > spawnDelay) {
+      spawnEnemy();
+      state.lastSpawn = now;
+    }
+
+    for (const target of state.targets) {
+      if (target.type !== "enemy" || target.dead) continue;
+
+      target.y += target.speed * delta;
+
+      if (target.y >= canvasHeight - 65) {
+        target.dead = true;
+
+        if (loseLife("An enemy breached your base!")) {
+          return;
+        }
+
+        registerMiss("Enemy reached your base.");
+      }
+    }
+  }
+
+  /* ==========================================
+     MODE 4 — BOSS FIGHT
+     ========================================== */
+
+  function updateBossMode(delta, now) {
+    // Boss health is reduced by correctly typed attack words.
+    // The encounter ends when boss health reaches zero.
+    // The player also loses a life after a wrong attack streak.
+    if (!state.lastBossMistake) {
+      state.lastBossMistake = now;
+    }
+
+    if (state.combo === 0 && now - state.lastBossMistake > 9000) {
+      state.lastBossMistake = now;
+    }
+  }
+
+  /* ==========================================
+     MODE 5 — BOMB DEFUSE
+     ========================================== */
+
+  function updateBombMode(delta, now) {
+    const bomb = state.targets.find(
+      (target) => target.type === "bomb" && !target.dead
+    );
+
+    if (!bomb) return;
+
+    const timeLeft = Math.max(
+      0,
+      (bomb.deadline - now) / 1000
+    );
+
+    bomb.timeLeft = timeLeft;
+
+    if (timeLeft <= 0) {
+      bomb.dead = true;
+
+      addParticles(
+        bomb.x,
+        bomb.y,
+        "#ff637e",
+        32
+      );
+
+      playSound("boom");
+
+      if (loseLife("BOOM! The bomb exploded. One life lost.")) {
+        return;
       }
 
-      case "shield":
-        shieldCharges = Math.min(3, shieldCharges + 1);
-        activePower = "shield";
-        showToast("SHIELD CHARGED");
-        playSound("power");
-        break;
+      spawnBomb(false, now);
+    }
+  }
 
-      case "freeze":
-        activePower = "freeze";
-        powerTime = 3;
-        showToast("TARGETS FROZEN");
-        playSound("power");
-        break;
+  /* ==========================================
+     MODE 6 — MEMORY MASTER
+     ========================================== */
 
-      default:
+  function updateMemoryMode(now) {
+    if (
+      state.memoryPhase === "show" &&
+      now >= state.memoryDeadline
+    ) {
+      switchMemoryToInput(now);
+    }
+
+    if (
+      state.memoryPhase === "input" &&
+      now >= state.memoryDeadline
+    ) {
+      state.misses++;
+      state.combo = 0;
+
+      if (loseLife("Time ran out! One life lost.")) {
         return;
-    }
+      }
 
-    updateGameUI();
-  }
-
-  function updateGameUI() {
-    $("#scoreValue").textContent = score.toLocaleString();
-    $("#comboValue").textContent = `x${combo}`;
-
-    const accuracy = attempts
-      ? Math.round(((attempts - mistakes) / attempts) * 100)
-      : 100;
-
-    $("#accuracyValue").textContent = `${Math.max(0, accuracy)}%`;
-    $("#timeValue").textContent = `${Math.ceil(remaining)}s`;
-
-    $("#livesValue").textContent = lives > 0
-      ? `${"♥ ".repeat(lives).trim()}`
-      : "0";
-
-    $("#destroyedValue").textContent = destroyed;
-    $("#difficultyValue").textContent = String(level).padStart(2, "0");
-    $("#bestComboValue").textContent = profile.bestCombo;
-
-    $("#inputStatus").textContent = running ? "ONLINE" : "WAITING";
-
-    const powerButtons = $$(".powerup-button");
-    powerButtons.forEach((button) => {
-      button.disabled = !running;
-    });
-
-    const status = $("#gameStatus");
-
-    if (running) {
-      status.textContent = activePower
-        ? `${activePower.toUpperCase()} ACTIVE`
-        : "MISSION ACTIVE";
+      beginMemoryRound(now);
     }
   }
 
-  function drawFrame() {
+  /* ==========================================
+     PARTICLE UPDATES
+     ========================================== */
+
+  function updateParticles(delta) {
+    for (const particle of state.particles) {
+      particle.x += particle.vx * delta;
+      particle.y += particle.vy * delta;
+
+      particle.vx *= 0.97;
+      particle.vy *= 0.97;
+
+      particle.life -= delta;
+    }
+
+    state.particles = state.particles.filter(
+      (particle) => particle.life > 0
+    );
+  }
+
+  function updateFloatingTexts(delta) {
+    for (const item of state.floatingTexts) {
+      item.y -= 25 * delta;
+      item.life -= delta * 1.3;
+    }
+
+    state.floatingTexts = state.floatingTexts.filter(
+      (item) => item.life > 0
+    );
+  }
+
+  /* ==========================================
+     CANVAS DRAWING HELPERS
+     ========================================== */
+
+  function drawText(
+    text,
+    x,
+    y,
+    size = 12,
+    color = "#f2f5ff",
+    align = "center",
+    font = "Inter"
+  ) {
+    ctx.save();
+
+    ctx.textAlign = align;
+    ctx.textBaseline = "middle";
+    ctx.font = `700 ${size}px "${font}"`;
+    ctx.fillStyle = color;
+
+    ctx.fillText(text, x, y);
+
+    ctx.restore();
+  }
+
+  function roundedRect(x, y, width, height, radius) {
+    const r = Math.min(
+      radius,
+      width / 2,
+      height / 2
+    );
+
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + width, y, x + width, y + height, r);
+    ctx.arcTo(x + width, y + height, x, y + height, r);
+    ctx.arcTo(x, y + height, x, y, r);
+    ctx.arcTo(x, y, x + width, y, r);
+    ctx.closePath();
+  }
+
+  function drawScene(now) {
     if (!ctx || !canvasWidth || !canvasHeight) return;
-
-    const theme = currentTheme();
 
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-    if (hitFlash > 0) {
-      ctx.fillStyle = `rgba(255, 65, 100, ${Math.min(0.15, hitFlash * 0.5)})`;
-      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-    }
+    drawGrid(now);
 
-    gameObjects.forEach((object) => drawTarget(object, theme));
-    particles.forEach(drawParticle);
+    if (state.mode === "bubble") drawBubbles(now);
+    if (state.mode === "wordrain") drawWords(now);
+    if (state.mode === "survival") drawSurvival(now);
+    if (state.mode === "boss") drawBoss(now);
+    if (state.mode === "bomb") drawBomb(now);
+    if (state.mode === "memory") drawMemory(now);
 
-    if (activePower === "shield" && shieldCharges > 0) {
-      ctx.save();
-      ctx.strokeStyle = theme.accent;
-      ctx.globalAlpha = 0.5;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(canvasWidth / 2, canvasHeight - 35, 21, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
-    }
+    drawParticles();
+    drawFloatingTexts();
 
-    if (activePower === "freeze") {
-      ctx.fillStyle = "rgba(88,217,255,.06)";
-      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    if (state.paused) {
+      drawPauseScreen();
     }
   }
 
-  function drawTarget(object, theme) {
-    const radius = object.radius;
-    const x = object.x;
-    const y = object.y;
+  function drawGrid(now) {
+    ctx.save();
 
-    if (object.hidden) return;
+    ctx.strokeStyle = "rgba(119, 136, 170, 0.035)";
+    ctx.lineWidth = 1;
+
+    const gridSize = 35;
+
+    for (let x = 0; x < canvasWidth; x += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvasHeight);
+      ctx.stroke();
+    }
+
+    for (let y = 0; y < canvasHeight; y += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvasWidth, y);
+      ctx.stroke();
+    }
+
+    const scanY = (now / 30) % canvasHeight;
+
+    const gradient = ctx.createLinearGradient(
+      0,
+      scanY - 20,
+      0,
+      scanY + 20
+    );
+
+    gradient.addColorStop(0, "rgba(89,229,255,0)");
+    gradient.addColorStop(0.5, "rgba(89,229,255,0.035)");
+    gradient.addColorStop(1, "rgba(89,229,255,0)");
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, scanY - 20, canvasWidth, 40);
+
+    ctx.restore();
+  }
+
+  /* ==========================================
+     DRAW MODE 1 — BUBBLES
+     ========================================== */
+
+  function drawBubbles(now) {
+    for (const bubble of state.targets) {
+      if (bubble.type !== "bubble" || bubble.dead) continue;
+
+      const pulse =
+        Math.sin(now / 240 + bubble.phase) * 2;
+
+      const radius = bubble.radius + pulse;
+
+      ctx.save();
+
+      ctx.shadowBlur = 22;
+      ctx.shadowColor = bubble.color;
+
+      ctx.beginPath();
+      ctx.arc(
+        bubble.x,
+        bubble.y,
+        radius,
+        0,
+        Math.PI * 2
+      );
+
+      ctx.fillStyle = "rgba(168, 121, 255, 0.10)";
+      ctx.fill();
+
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = bubble.color;
+      ctx.stroke();
+
+      ctx.shadowBlur = 0;
+
+      ctx.beginPath();
+      ctx.arc(
+        bubble.x - radius * 0.25,
+        bubble.y - radius * 0.3,
+        radius * 0.16,
+        0,
+        Math.PI * 2
+      );
+
+      ctx.fillStyle = "rgba(255,255,255,0.4)";
+      ctx.fill();
+
+      drawText(
+        bubble.letter,
+        bubble.x,
+        bubble.y + 1,
+        16,
+        bubble.color,
+        "center",
+        "Orbitron"
+      );
+
+      ctx.restore();
+    }
+
+    drawModeLabel("TYPE THE LETTER", "#a879ff");
+  }
+
+  /* ==========================================
+     DRAW MODE 2 — WORD RAIN
+     ========================================== */
+
+  function drawWords(now) {
+    for (const target of state.targets) {
+      if (target.type !== "word" || target.dead) continue;
+
+      const width = target.width;
+      const height = target.height;
+
+      ctx.save();
+
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = "#59e5ff";
+
+      roundedRect(
+        target.x - width / 2,
+        target.y - height / 2,
+        width,
+        height,
+        6
+      );
+
+      ctx.fillStyle = "rgba(89, 229, 255, 0.09)";
+      ctx.fill();
+
+      ctx.strokeStyle = "rgba(89, 229, 255, 0.7)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.shadowBlur = 0;
+
+      drawText(
+        target.word.toUpperCase(),
+        target.x,
+        target.y,
+        11,
+        "#a5f4ff",
+        "center",
+        "Orbitron"
+      );
+
+      ctx.restore();
+    }
+
+    drawModeLabel("WORD RAIN / TYPE TO DESTROY", "#59e5ff");
+  }
+
+  /* ==========================================
+     DRAW MODE 3 — LAST STAND
+     ========================================== */
+
+  function drawSurvival(now) {
+    ctx.save();
+
+    for (let i = 0; i < 3; i++) {
+      const laneX = canvasWidth * LANES[i];
+
+      ctx.strokeStyle = "rgba(98, 245, 189, 0.12)";
+      ctx.setLineDash([4, 9]);
+      ctx.lineWidth = 1;
+
+      ctx.beginPath();
+      ctx.moveTo(laneX, 45);
+      ctx.lineTo(laneX, canvasHeight - 38);
+      ctx.stroke();
+
+      ctx.setLineDash([]);
+
+      drawText(
+        "LANE " + (i + 1),
+        laneX,
+        43,
+        8,
+        "#566b78",
+        "center",
+        "Orbitron"
+      );
+    }
+
+    const baseY = canvasHeight - 52;
+
+    ctx.strokeStyle = "rgba(98, 245, 189, 0.45)";
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+    ctx.moveTo(15, baseY);
+    ctx.lineTo(canvasWidth - 15, baseY);
+    ctx.stroke();
+
+    ctx.fillStyle = "rgba(98, 245, 189, 0.05)";
+    ctx.fillRect(15, baseY, canvasWidth - 30, 20);
+
+    drawText(
+      "YOUR BASE",
+      canvasWidth / 2,
+      baseY + 10,
+      8,
+      "#62f5bd",
+      "center",
+      "Orbitron"
+    );
+
+    ctx.restore();
+
+    for (const enemy of state.targets) {
+      if (enemy.type !== "enemy" || enemy.dead) continue;
+
+      const size = enemy.size;
+
+      ctx.save();
+
+      ctx.translate(enemy.x, enemy.y);
+
+      ctx.shadowBlur = 16;
+      ctx.shadowColor = "#ff637e";
+
+      ctx.fillStyle = "rgba(255, 99, 126, 0.12)";
+      ctx.strokeStyle = "#ff637e";
+      ctx.lineWidth = 1.5;
+
+      ctx.beginPath();
+      ctx.moveTo(0, -size);
+      ctx.lineTo(size, 0);
+      ctx.lineTo(0, size);
+      ctx.lineTo(-size, 0);
+      ctx.closePath();
+
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.shadowBlur = 0;
+
+      drawText(
+        enemy.code,
+        0,
+        0,
+        9,
+        "#ffd6de",
+        "center",
+        "Orbitron"
+      );
+
+      ctx.restore();
+    }
+
+    drawModeLabel("DESTROY ENEMIES BEFORE BREACH", "#ff637e");
+  }
+
+  /* ==========================================
+     DRAW MODE 4 — BOSS FIGHT
+     ========================================== */
+
+  function drawBoss(now) {
+    const centerX = canvasWidth / 2;
+    const centerY = canvasHeight * 0.37;
+
+    const bossRadius = Math.min(
+      65,
+      canvasWidth * 0.12
+    );
+
+    const pulse = Math.sin(now / 250) * 4;
 
     ctx.save();
 
-    const color = object.color || theme.accent;
-
-    ctx.shadowColor = color;
-    ctx.shadowBlur = 18;
-
-    const gradient = ctx.createRadialGradient(
-      x - radius * 0.35,
-      y - radius * 0.45,
-      2,
-      x,
-      y,
-      radius * 1.2
-    );
-
-    gradient.addColorStop(0, "rgba(255,255,255,.16)");
-    gradient.addColorStop(1, "rgba(10,12,26,.95)");
-
-    ctx.fillStyle = gradient;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = object.isBomb ? 2.5 : 1.7;
+    ctx.shadowBlur = 30;
+    ctx.shadowColor = "#ff637e";
 
     ctx.beginPath();
+    ctx.arc(
+      centerX,
+      centerY,
+      bossRadius + pulse,
+      0,
+      Math.PI * 2
+    );
 
-    if (object.label.length > 4) {
-      roundedRect(
-        ctx,
-        x - radius - 12,
-        y - radius * 0.62,
-        radius * 2 + 24,
-        radius * 1.24,
-        12
-      );
-    } else {
-      ctx.arc(x, y, radius, 0, Math.PI * 2);
-    }
-
+    ctx.fillStyle = "rgba(255, 99, 126, 0.08)";
     ctx.fill();
+
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#ff637e";
     ctx.stroke();
 
     ctx.shadowBlur = 0;
 
-    if (object.isBomb) {
-      ctx.fillStyle = "rgba(255,97,127,.14)";
-      ctx.fill();
-    }
-
-    ctx.fillStyle = object.isBomb ? "#ff8fa3" : "#ffffff";
-    ctx.font = `900 ${object.label.length > 5 ? 11 : object.label.length > 3 ? 12 : 17}px system-ui`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(object.label, x, y);
-
-    if (pointerTarget === object) {
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(x, y, radius + 6, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-
-    ctx.restore();
-  }
-
-  function roundedRect(context, x, y, width, height, radius) {
-    context.beginPath();
-    context.roundRect(x, y, width, height, radius);
-  }
-
-  function drawParticle(particle) {
-    ctx.save();
-    ctx.globalAlpha = Math.max(0, particle.life / particle.maxLife);
-    ctx.fillStyle = particle.color;
-    ctx.shadowColor = particle.color;
-    ctx.shadowBlur = 8;
     ctx.beginPath();
     ctx.arc(
-      particle.x,
-      particle.y,
-      particle.size,
+      centerX,
+      centerY,
+      bossRadius * 0.68,
       0,
       Math.PI * 2
     );
+
+    ctx.strokeStyle = "rgba(255, 99, 126, 0.35)";
+    ctx.stroke();
+
+    ctx.fillStyle = "#ff637e";
+
+    ctx.fillRect(
+      centerX - 19,
+      centerY - 9,
+      9,
+      18
+    );
+
+    ctx.fillRect(
+      centerX + 10,
+      centerY - 9,
+      9,
+      18
+    );
+
+    ctx.restore();
+
+    const barWidth = Math.min(
+      canvasWidth * 0.65,
+      310
+    );
+
+    const barX = centerX - barWidth / 2;
+    const barY = centerY + bossRadius + 20;
+
+    ctx.save();
+
+    roundedRect(barX, barY, barWidth, 7, 4);
+    ctx.fillStyle = "rgba(255, 99, 126, 0.15)";
     ctx.fill();
+
+    const healthWidth =
+      barWidth * (state.bossHealth / state.bossMaxHealth);
+
+    if (healthWidth > 0) {
+      roundedRect(barX, barY, healthWidth, 7, 4);
+
+      ctx.fillStyle = "#ff637e";
+      ctx.fill();
+    }
+
+    ctx.restore();
+
+    drawText(
+      "BOSS HEALTH  " + state.bossHealth + "%",
+      centerX,
+      barY + 20,
+      9,
+      "#ff8b9e",
+      "center",
+      "Orbitron"
+    );
+
+    const wordY = Math.min(
+      canvasHeight - 80,
+      barY + 90
+    );
+
+    drawText(
+      "ATTACK WORD",
+      centerX,
+      wordY - 25,
+      9,
+      "#8994ac",
+      "center",
+      "Orbitron"
+    );
+
+    drawText(
+      state.bossAttackWord.toUpperCase(),
+      centerX,
+      wordY + 5,
+      22,
+      "#f2f5ff",
+      "center",
+      "Orbitron"
+    );
+
+    drawModeLabel("BOSS ENCOUNTER / ATTACK", "#ff637e");
+  }
+
+  /* ==========================================
+     DRAW MODE 5 — BOMB DEFUSE
+     ========================================== */
+
+  function drawBomb(now) {
+    const bomb = state.targets.find(
+      (target) => target.type === "bomb" && !target.dead
+    );
+
+    if (!bomb) return;
+
+    const timeLeft = Math.max(
+      0,
+      (bomb.deadline - now) / 1000
+    );
+
+    const urgent = timeLeft <= 4;
+
+    const color = urgent ? "#ff637e" : "#ffd36a";
+
+    const pulse = Math.sin(now / 130) * 3;
+
+    ctx.save();
+
+    ctx.shadowBlur = 26;
+    ctx.shadowColor = color;
+
+    ctx.beginPath();
+    ctx.arc(
+      bomb.x,
+      bomb.y,
+      bomb.radius + pulse,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.fillStyle = urgent
+      ? "rgba(255, 99, 126, 0.12)"
+      : "rgba(255, 211, 106, 0.10)";
+
+    ctx.fill();
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+
+    ctx.beginPath();
+    ctx.arc(
+      bomb.x,
+      bomb.y,
+      bomb.radius * 0.7,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.strokeStyle = "rgba(255, 211, 106, 0.4)";
+    ctx.stroke();
+
+    ctx.restore();
+
+    drawText(
+      timeLeft.toFixed(1) + "s",
+      bomb.x,
+      bomb.y - 10,
+      20,
+      color,
+      "center",
+      "Orbitron"
+    );
+
+    drawText(
+      "BOMB TIMER",
+      bomb.x,
+      bomb.y + 13,
+      8,
+      "#c5bca6",
+      "center",
+      "Orbitron"
+    );
+
+    const codeY = bomb.y + bomb.radius + 38;
+
+    drawText(
+      "DEFUSAL CODE",
+      bomb.x,
+      codeY,
+      9,
+      "#8994ac",
+      "center",
+      "Orbitron"
+    );
+
+    drawText(
+      bomb.code,
+      bomb.x,
+      codeY + 27,
+      Math.min(19, 220 / bomb.code.length),
+      "#ffd36a",
+      "center",
+      "Orbitron"
+    );
+
+    const barWidth = Math.min(220, canvasWidth * 0.65);
+    const barX = bomb.x - barWidth / 2;
+    const barY = codeY + 48;
+
+    ctx.fillStyle = "rgba(255,255,255,0.08)";
+    ctx.fillRect(barX, barY, barWidth, 4);
+
+    ctx.fillStyle = color;
+
+    ctx.fillRect(
+      barX,
+      barY,
+      barWidth * (timeLeft / bomb.duration),
+      4
+    );
+
+    drawModeLabel("BOMB DEFUSAL / TIME CRITICAL", color);
+  }
+
+  /* ==========================================
+     DRAW MODE 6 — MEMORY MASTER
+     ========================================== */
+
+  function drawMemory(now) {
+    const centerX = canvasWidth / 2;
+    const centerY = canvasHeight * 0.45;
+
+    drawText(
+      "MEMORY ROUND " + state.memoryRound + " / 8",
+      centerX,
+      centerY - 70,
+      10,
+      "#59e5ff",
+      "center",
+      "Orbitron"
+    );
+
+    if (state.memoryPhase === "show") {
+      drawText(
+        "MEMORIZE THIS SEQUENCE",
+        centerX,
+        centerY - 30,
+        9,
+        "#8994ac",
+        "center",
+        "Orbitron"
+      );
+
+      const sequence = state.memorySequence;
+      const fontSize = Math.min(
+        24,
+        (canvasWidth - 45) / Math.max(1, sequence.length) * 1.1
+      );
+
+      drawText(
+        sequence,
+        centerX,
+        centerY + 12,
+        fontSize,
+        "#59e5ff",
+        "center",
+        "Orbitron"
+      );
+
+      const remaining = Math.max(
+        0,
+        state.memoryDeadline - now
+      );
+
+      const progress = clamp(
+        remaining / Math.max(1, 3200 - state.memoryRound * 150),
+        0,
+        1
+      );
+
+      const barWidth = Math.min(
+        250,
+        canvasWidth * 0.7
+      );
+
+      ctx.fillStyle = "rgba(89,229,255,0.12)";
+      ctx.fillRect(
+        centerX - barWidth / 2,
+        centerY + 48,
+        barWidth,
+        4
+      );
+
+      ctx.fillStyle = "#59e5ff";
+      ctx.fillRect(
+        centerX - barWidth / 2,
+        centerY + 48,
+        barWidth * progress,
+        4
+      );
+
+    } else {
+      drawText(
+        "SEQUENCE HIDDEN",
+        centerX,
+        centerY - 15,
+        16,
+        "#a879ff",
+        "center",
+        "Orbitron"
+      );
+
+      drawText(
+        "Type the sequence into the input below",
+        centerX,
+        centerY + 20,
+        10,
+        "#8994ac"
+      );
+
+      const remaining = Math.max(
+        0,
+        (state.memoryDeadline - now) / 1000
+      );
+
+      drawText(
+        remaining.toFixed(1) + "s REMAINING",
+        centerX,
+        centerY + 55,
+        9,
+        remaining <= 4 ? "#ff637e" : "#59e5ff",
+        "center",
+        "Orbitron"
+      );
+    }
+
+    drawModeLabel("MEMORY CHALLENGE", "#59e5ff");
+  }
+
+  /* ==========================================
+     SHARED VISUAL EFFECTS
+     ========================================== */
+
+  function drawModeLabel(text, color) {
+    ctx.save();
+
+    ctx.globalAlpha = 0.65;
+
+    drawText(
+      text,
+      canvasWidth / 2,
+      canvasHeight - 38,
+      8,
+      color,
+      "center",
+      "Orbitron"
+    );
+
     ctx.restore();
   }
 
-  function endGame(reason) {
-    if (!running) return;
+  function drawParticles() {
+    for (const particle of state.particles) {
+      ctx.save();
 
-    running = false;
-    cancelAnimationFrame(animationId);
-    animationId = 0;
+      ctx.globalAlpha = clamp(
+        particle.life / particle.maxLife,
+        0,
+        1
+      );
 
-    input.disabled = true;
-    submitButton.disabled = true;
+      ctx.fillStyle = particle.color;
 
-    $$(".powerup-button").forEach((button) => {
-      button.disabled = true;
-    });
+      ctx.beginPath();
+      ctx.arc(
+        particle.x,
+        particle.y,
+        particle.size,
+        0,
+        Math.PI * 2
+      );
 
-    $("#gameStatus").textContent = reason;
-    $("#inputStatus").textContent = "OFFLINE";
+      ctx.fill();
 
-    const accuracy = attempts
-      ? Math.max(0, Math.round(((attempts - mistakes) / attempts) * 100))
-      : 100;
-
-    const earnedXP = Math.max(5, Math.floor(score / 10)) + currentXP;
-
-    profile.totalXP += earnedXP;
-    profile.gamesPlayed++;
-    profile.totalDestroyed += destroyed;
-    profile.bestScore = Math.max(profile.bestScore, score);
-
-    profile.history.unshift({
-      mode: MODES[selectedMode].title,
-      score,
-      destroyed,
-      accuracy,
-      date: new Date().toISOString()
-    });
-
-    profile.history = profile.history.slice(0, 8);
-
-    saveProfile();
-    checkAchievements();
-    updateProfileUI();
-
-    $("#resultTitle").textContent =
-      reason === "BOSS DEFEATED" ? "Mission accomplished" :
-      reason === "GAME OVER" ? "Mission failed" :
-      "Mission complete";
-
-    $("#finalScore").textContent = score.toLocaleString();
-    $("#finalTargets").textContent = destroyed;
-    $("#finalAccuracy").textContent = `${accuracy}%`;
-    $("#finalXP").textContent = earnedXP;
-
-    overlay.classList.remove("hidden");
-    $("#overlayTitle").textContent =
-      reason === "GAME OVER" ? "Mission failed." : "Mission complete.";
-
-    $("#overlayDescription").textContent =
-      `Final score: ${score.toLocaleString()} · Targets: ${destroyed}. Ready for another round?`;
-
-    startButton.textContent = "PLAY AGAIN →";
-    resultPanel.classList.remove("hidden");
-
-    $$(".powerup-button").forEach((button) => {
-      button.disabled = true;
-    });
-
-    drawFrame();
-    showToast(`GAME OVER · ${score.toLocaleString()} POINTS`);
-  }
-
-  function handleCanvasTap(event) {
-    if (!running) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-
-    const target = [...gameObjects].reverse().find((object) => {
-      const dx = x - object.x;
-      const dy = y - object.y;
-
-      return Math.sqrt(dx * dx + dy * dy) <= object.radius + 12;
-    });
-
-    if (target) {
-      pointerTarget = target;
-
-      if (MODES[selectedMode].words) {
-        input.value = target.label;
-        input.focus({ preventScroll: true });
-        processWordInput();
-      } else {
-        registerHit(target);
-      }
-    } else {
-      input.focus({ preventScroll: true });
+      ctx.restore();
     }
   }
 
-  function bindEvents() {
-    startButton.addEventListener("click", () => {
-      startButton.textContent = "RESTART GAME →";
-      startGame();
-    });
+  function drawFloatingTexts() {
+    for (const item of state.floatingTexts) {
+      ctx.save();
 
-    $("#playAgainButton").addEventListener("click", () => {
-      startGame();
-      window.scrollTo({ top: arena.offsetTop - 20, behavior: "smooth" });
-    });
+      ctx.globalAlpha = clamp(item.life, 0, 1);
 
-    $$("#modeList [data-mode]").forEach((button) => {
-      button.addEventListener("click", () => {
-        selectMode(button.dataset.mode);
-      });
-    });
+      drawText(
+        item.text,
+        item.x,
+        item.y,
+        11,
+        item.color,
+        "center",
+        "Orbitron"
+      );
 
-    $("#themeSelect").addEventListener("change", (event) => {
-      applyTheme(event.target.value);
-    });
-
-    $("#soundToggle").addEventListener("click", () => {
-      profile.sound = !profile.sound;
-      $("#soundToggle").textContent = `SOUND: ${profile.sound ? "ON" : "OFF"}`;
-      saveProfile();
-
-      if (profile.sound) playSound("power");
-    });
-
-    $("#durationSelect").addEventListener("change", () => {
-      if (!running) {
-        remaining = Number($("#durationSelect").value) || 60;
-        updateGameUI();
-        drawFrame();
-      }
-    });
-
-    form.addEventListener("submit", handleFormSubmit);
-
-    input.addEventListener("input", () => {
-      if (!running) return;
-
-      if (MODES[selectedMode].words) {
-        wordBuffer = input.value;
-        processWordInput();
-      } else {
-        const value = input.value;
-        if (value) {
-          processBubbleInput(value);
-          input.value = "";
-        }
-      }
-    });
-
-    $$(".powerup-button").forEach((button) => {
-      button.addEventListener("click", () => {
-        usePower(button.dataset.power);
-      });
-    });
-
-    document.addEventListener("keydown", (event) => {
-      if (event.ctrlKey || event.metaKey || event.altKey) return;
-
-      const tag = document.activeElement?.tagName;
-      const typingInInput = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
-
-      if (event.key === "Escape" && running) {
-        endGame("GAME OVER");
-        return;
-      }
-
-      if (typingInInput && document.activeElement !== input) return;
-
-      if (/^[1-4]$/.test(event.key) && running) {
-        const names = { "1": "slow", "2": "bomb", "3": "shield", "4": "freeze" };
-        usePower(names[event.key]);
-        return;
-      }
-
-      if (!running && event.key === "Enter" && !typingInInput) {
-        startGame();
-        return;
-      }
-
-      if (MODES[selectedMode].words && document.activeElement !== input && /^[a-zA-Z]$/.test(event.key)) {
-        input.focus({ preventScroll: true });
-      }
-    });
-
-    canvas.addEventListener("pointerdown", handleCanvasTap);
-
-    $("#clearHistoryButton").addEventListener("click", () => {
-      if (!profile.history.length) {
-        showToast("HISTORY IS ALREADY EMPTY");
-        return;
-      }
-
-      profile.history = [];
-      saveProfile();
-      renderHistory();
-      showToast("GAME HISTORY CLEARED");
-    });
-
-    window.addEventListener("resize", resizeCanvas);
-
-    document.addEventListener("visibilitychange", () => {
-      if (document.hidden && running) {
-        endGame("GAME OVER");
-      }
-    });
+      ctx.restore();
+    }
   }
 
-  function init() {
-    applyTheme(profile.theme);
-    $("#soundToggle").textContent = `SOUND: ${profile.sound ? "ON" : "OFF"}`;
+  function drawPauseScreen() {
+    ctx.save();
 
-    bindEvents();
-    updateProfileUI();
+    ctx.fillStyle = "rgba(8, 11, 20, 0.78)";
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+    drawText(
+      "GAME PAUSED",
+      canvasWidth / 2,
+      canvasHeight / 2 - 12,
+      21,
+      "#c09aff",
+      "center",
+      "Orbitron"
+    );
+
+    drawText(
+      "PRESS ESC TO RESUME",
+      canvasWidth / 2,
+      canvasHeight / 2 + 22,
+      9,
+      "#8994ac",
+      "center",
+      "Orbitron"
+    );
+
+    ctx.restore();
+  }
+
+  /* ==========================================
+     INITIALIZATION
+     ========================================== */
+
+  function initialize() {
     selectMode("bubble");
+
     resizeCanvas();
-    updateGameUI();
+
+    setGameStatus("READY", false);
+
+    showMessage(
+      "Select a mode and press Start Game."
+    );
+
+    updateStats();
+    updateClock();
+
+    console.log("TYPEX initialized successfully.");
   }
 
-  init();
+  initialize();
 })();
